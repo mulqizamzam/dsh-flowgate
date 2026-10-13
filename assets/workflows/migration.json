@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "name": "migration",
+  "description": "Migrates, upgrades, or refactors a system from intent through handoff.",
+  "match": {
+    "keywords": ["migrate", "upgrade", "deprecate", "port", "refactor"],
+    "priority": 60
+  },
+  "stages": [
+    { "skill": "intent", "required": true, "purpose": "Capture what the operator actually wants." },
+    { "skill": "spec", "required": true, "purpose": "Pin the interfaces, boundaries, and success criteria." },
+    { "skill": "slice", "required": true, "purpose": "Break the work into independently provable slices." },
+    { "skill": "prove", "required": true, "purpose": "Write the proof before the code." },
+    { "skill": "review", "required": false, "purpose": "Adversarial review against constraints." },
+    { "skill": "handoff", "required": true, "purpose": "Leave a takeover-ready record of the migration state." }
+  ],
+  "rules": [
+    "Do not begin a stage until the previous stage's artifact is complete and its evidence block is filled.",
+    "Each slice must be independently rollbackable before the next slice starts.",
+    "If a stage reveals the intent was wrong, return to the intent stage before continuing."
+  ],
+  "on_optional_missing": "skip",
+  "completion": "Done when every slice is proven and reviewed, and the handoff artifact records the final state."
+}

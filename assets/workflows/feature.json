@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "name": "feature",
+  "description": "Implements a new capability from intent to review.",
+  "match": {
+    "keywords": ["add", "implement", "build", "create", "feature"],
+    "priority": 60
+  },
+  "stages": [
+    { "skill": "intent", "required": true, "purpose": "Capture what the operator actually wants." },
+    { "skill": "spec", "required": true, "purpose": "Pin the interfaces, boundaries, and success criteria." },
+    { "skill": "slice", "required": true, "purpose": "Break the work into independently provable slices." },
+    { "skill": "prove", "required": true, "purpose": "Write the proof before the code." },
+    { "skill": "review", "required": false, "purpose": "Adversarial review against constraints." }
+  ],
+  "rules": [
+    "Do not begin a stage until the previous stage's artifact is complete and its evidence block is filled.",
+    "If a stage reveals the intent was wrong, return to the intent stage before continuing."
+  ],
+  "on_optional_missing": "skip",
+  "completion": "Done when the review artifact is empty of unresolved high-severity findings, or when no review stage was run and every prior artifact is complete."
+}

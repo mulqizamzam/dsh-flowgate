@@ -1,0 +1,12 @@
+- insert:
+    - id: flowgate-skills
+      name: '@deepseek-ai/dsh-skill-filesystem'
+      config:
+        providerName: flowgate
+        includeDefaultRoots: false
+        customSkillDirs:
+          - /home/administrator/agent-workspace/dsh-custom/plugins/dsh-flowgate/assets/skills
+- insert:
+    - id: dsh-flowgate
+      name: dsh-flowgate
+      config: {}

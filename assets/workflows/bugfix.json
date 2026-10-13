@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "bugfix",
+  "description": "Diagnoses a defect, proves the fix, and reviews the result.",
+  "match": {
+    "keywords": ["fix", "broken", "regression", "crash", "bug"],
+    "priority": 60
+  },
+  "stages": [
+    { "skill": "recover", "required": true, "purpose": "Diagnose the root cause before changing code." },
+    { "skill": "prove", "required": true, "purpose": "Write the failing repro first, then the passing fix." },
+    { "skill": "review", "required": true, "purpose": "Adversarial review of the fix against the diagnosis." }
+  ],
+  "rules": [
+    "Do not begin a stage until the previous stage's artifact is complete and its evidence block is filled.",
+    "Run the prove stage twice: first to encode the failing repro, then to encode the passing fix.",
+    "If the fix changes the original symptom instead of removing it, return to the recover stage before continuing."
+  ],
+  "on_optional_missing": "skip",
+  "completion": "Done when the review artifact is empty of unresolved high-severity findings against the diagnosis."
+}

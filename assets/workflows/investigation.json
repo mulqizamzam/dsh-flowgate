@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "investigation",
+  "description": "Investigates an open question and leaves a takeover-ready record.",
+  "match": {
+    "keywords": ["investigate", "why", "diagnose", "failing", "understand"],
+    "priority": 60
+  },
+  "stages": [
+    { "skill": "intent", "required": true, "purpose": "State the question to be answered in a falsifiable form." },
+    { "skill": "recover", "required": true, "purpose": "Diagnose system behavior from evidence, not trial and error." },
+    { "skill": "handoff", "required": true, "purpose": "Record changed, verified, not verified, and next action." }
+  ],
+  "rules": [
+    "Do not begin a stage until the previous stage's artifact is complete and its evidence block is filled.",
+    "Do not propose a fix during the recover stage; record the root cause and stop.",
+    "If the question changes, return to the intent stage before continuing."
+  ],
+  "on_optional_missing": "skip",
+  "completion": "Done when the diagnosis artifact names a root cause with a repro, and the handoff artifact is complete."
+}

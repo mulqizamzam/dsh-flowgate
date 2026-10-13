@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "vocabulary": {
+    "artifacts": ["Intent", "Spec", "SlicePlan", "Proof", "Review", "Constraints", "Diagnosis", "Handoff", "user-request"],
+    "categories": ["frame", "specify", "plan", "prove", "review", "guard", "recover", "close"],
+    "risk_levels": ["low", "medium", "high"]
+  },
+  "contracts": {
+    "intent": {
+      "produces": ["Intent"],
+      "consumes": ["user-request"],
+      "categories": ["frame"],
+      "risk_level": "low"
+    },
+    "spec": {
+      "produces": ["Spec"],
+      "consumes": ["Intent"],
+      "categories": ["specify"],
+      "risk_level": "low"
+    },
+    "slice": {
+      "produces": ["SlicePlan"],
+      "consumes": ["Spec"],
+      "categories": ["plan"],
+      "risk_level": "low"
+    },
+    "prove": {
+      "produces": ["Proof"],
+      "consumes": ["user-request"],
+      "categories": ["prove"],
+      "risk_level": "medium"
+    },
+    "review": {
+      "produces": ["Review"],
+      "consumes": ["Proof"],
+      "categories": ["review"],
+      "risk_level": "medium"
+    },
+    "constrain": {
+      "produces": ["Constraints"],
+      "consumes": ["user-request"],
+      "categories": ["guard"],
+      "risk_level": "low"
+    },
+    "recover": {
+      "produces": ["Diagnosis"],
+      "consumes": ["user-request"],
+      "categories": ["recover"],
+      "risk_level": "high"
+    },
+    "handoff": {
+      "produces": ["Handoff"],
+      "consumes": ["user-request"],
+      "categories": ["close"],
+      "risk_level": "low"
+    }
+  }
+}
