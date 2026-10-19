@@ -4,7 +4,7 @@
   "description": "Diagnoses a defect, proves the fix, and reviews the result.",
   "match": {
     "keywords": ["fix", "broken", "regression", "crash", "bug"],
-    "priority": 60
+    "priority": 75
   },
   "stages": [
     { "skill": "recover", "required": true, "purpose": "Diagnose the root cause before changing code." },

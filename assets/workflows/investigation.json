@@ -4,7 +4,7 @@
   "description": "Investigates an open question and leaves a takeover-ready record.",
   "match": {
     "keywords": ["investigate", "why", "diagnose", "failing", "understand"],
-    "priority": 60
+    "priority": 50
   },
   "stages": [
     { "skill": "intent", "required": true, "purpose": "State the question to be answered in a falsifiable form." },

@@ -4,7 +4,7 @@
   "description": "Migrates, upgrades, or refactors a system from intent through handoff.",
   "match": {
     "keywords": ["migrate", "upgrade", "deprecate", "port", "refactor"],
-    "priority": 60
+    "priority": 70
   },
   "stages": [
     { "skill": "intent", "required": true, "purpose": "Capture what the operator actually wants." },

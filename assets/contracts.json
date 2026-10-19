@@ -9,48 +9,64 @@
     "intent": {
       "produces": ["Intent"],
       "consumes": ["user-request"],
+      "requires": ["user-request"],
+      "requires_any": [],
       "categories": ["frame"],
       "risk_level": "low"
     },
     "spec": {
       "produces": ["Spec"],
       "consumes": ["Intent"],
+      "requires": ["Intent"],
+      "requires_any": [],
       "categories": ["specify"],
       "risk_level": "low"
     },
     "slice": {
       "produces": ["SlicePlan"],
-      "consumes": ["Spec"],
+      "consumes": ["Intent", "Spec"],
+      "requires": ["Spec"],
+      "requires_any": [],
       "categories": ["plan"],
       "risk_level": "low"
     },
     "prove": {
       "produces": ["Proof"],
-      "consumes": ["user-request"],
+      "consumes": ["user-request", "Intent", "Spec", "SlicePlan", "Diagnosis", "Constraints"],
+      "requires": ["user-request"],
+      "requires_any": ["SlicePlan", "Diagnosis", "Constraints"],
       "categories": ["prove"],
       "risk_level": "medium"
     },
     "review": {
       "produces": ["Review"],
-      "consumes": ["Proof"],
+      "consumes": ["user-request", "Intent", "Spec", "SlicePlan", "Proof", "Constraints", "Diagnosis"],
+      "requires": ["Proof"],
+      "requires_any": [],
       "categories": ["review"],
       "risk_level": "medium"
     },
     "constrain": {
       "produces": ["Constraints"],
       "consumes": ["user-request"],
+      "requires": ["user-request"],
+      "requires_any": [],
       "categories": ["guard"],
       "risk_level": "low"
     },
     "recover": {
       "produces": ["Diagnosis"],
-      "consumes": ["user-request"],
+      "consumes": ["user-request", "Intent", "Spec", "Proof"],
+      "requires": ["user-request"],
+      "requires_any": [],
       "categories": ["recover"],
       "risk_level": "high"
     },
     "handoff": {
       "produces": ["Handoff"],
-      "consumes": ["user-request"],
+      "consumes": ["user-request", "Intent", "Spec", "SlicePlan", "Proof", "Review", "Constraints", "Diagnosis"],
+      "requires": ["user-request"],
+      "requires_any": ["Diagnosis", "Review", "Proof"],
       "categories": ["close"],
       "risk_level": "low"
     }

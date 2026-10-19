@@ -16,7 +16,9 @@ function contractsFixture(skills) {
     },
     contracts: Object.fromEntries(skills.map(name => [name, {
       produces: name === 'intent' ? ['Intent'] : ['Spec'],
-      consumes: name === 'intent' ? ['user-request'] : ['Intent'],
+      consumes: name === 'intent' ? ['user-request'] : ['Intent', 'user-request'],
+      requires: name === 'intent' ? ['user-request'] : ['Intent'],
+      requires_any: [],
       categories: [name === 'intent' ? 'frame' : 'specify'],
       risk_level: 'low',
     }])),
@@ -95,6 +97,7 @@ test('loader rejects a missing schema_version', () => {
 test('loader rejects a produce and consume self-loop', () => {
   const data = contractsFixture(['intent', 'spec'])
   data.contracts.intent.consumes = ['Intent']
+  data.contracts.intent.requires = ['Intent']
   assert.throws(() => validateContracts(data, SOURCE, ['intent', 'spec']), /produces and consumes the same artifact "Intent"/)
 })
 
@@ -116,6 +119,6 @@ test('artifact chain validation rejects a stage whose input no prior stage produ
   }
   assert.throws(
     () => validateArtifactChain(workflow, contracts, SOURCE),
-    /stage 2 "slice" consumes "Spec", not produced by any prior stage or the user request/,
+    /stage 2 "slice" requires "Spec", not produced by any prior stage or the user request/,
   )
 })

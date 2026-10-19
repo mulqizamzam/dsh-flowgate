@@ -4,7 +4,7 @@
   "description": "Gates a release on constraints, proof, review, and handoff.",
   "match": {
     "keywords": ["release", "deploy", "ship", "production", "launch"],
-    "priority": 60
+    "priority": 80
   },
   "stages": [
     { "skill": "constrain", "required": true, "purpose": "Establish the written quality bar with thresholds." },

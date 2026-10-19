@@ -78,7 +78,7 @@ test('the highest keyword count wins over lexicographic order', () => {
   assert.equal(selectWorkflow('why and diagnose and fix', workflows), 'investigation')
 })
 
-test('equal counts and equal priorities break lexicographically', () => {
+test('higher priority wins when counts are equal', () => {
   assert.equal(selectWorkflow('fix and add', workflows), 'bugfix')
   assert.equal(selectWorkflow('build and fix', workflows), 'bugfix')
 })
