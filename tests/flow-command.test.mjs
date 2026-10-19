@@ -36,9 +36,9 @@ async function run(ctx, agent, line) {
   return execution.result
 }
 
-test('/flow composes the feature workflow and steers exactly once', async () => {
+test('/flowgate composes the feature workflow and steers exactly once', async () => {
   const { ctx, agent, steered } = await mount()
-  const result = await run(ctx, agent, '/flow add a health endpoint')
+  const result = await run(ctx, agent, '/flowgate add a health endpoint')
   assert.equal(result.kind, 'success', result.text)
   assert.equal(steered.length, 1)
   const message = steered[0]
@@ -53,9 +53,9 @@ test('/flow composes the feature workflow and steers exactly once', async () => 
   assert.equal(message.content[0].text.includes('User request:\nadd a health endpoint'), true)
 })
 
-test('/flow composes the bugfix workflow with its three required stages', async () => {
+test('/flowgate composes the bugfix workflow with its three required stages', async () => {
   const { ctx, agent, steered } = await mount()
-  const result = await run(ctx, agent, '/flow fix the login crash')
+  const result = await run(ctx, agent, '/flowgate fix the login crash')
   assert.equal(result.kind, 'success', result.text)
   assert.equal(steered.length, 1)
   const text = steered[0].content[0].text
@@ -65,9 +65,9 @@ test('/flow composes the bugfix workflow with its three required stages', async 
   assert.equal(text.includes('STAGE 3 of 3: review'), true)
 })
 
-test('/flow --dry-run prints the resolved workflow and does not steer', async () => {
+test('/flowgate --dry-run prints the resolved workflow and does not steer', async () => {
   const { ctx, agent, steered } = await mount()
-  const result = await run(ctx, agent, '/flow fix the login crash --dry-run')
+  const result = await run(ctx, agent, '/flowgate fix the login crash --dry-run')
   assert.equal(result.kind, 'success', result.text)
   assert.equal(steered.length, 0)
   const text = result.text
@@ -100,25 +100,25 @@ test('an alias for a skill no provider serves fails without steering', async () 
   assert.equal(steered.length, 0)
 })
 
-test('/flow fails on a required stage no provider resolves, without steering', async () => {
+test('/flowgate fails on a required stage no provider resolves, without steering', async () => {
   const { ctx, agent, steered } = await mount({ withProvider: false })
-  const result = await run(ctx, agent, '/flow add a health endpoint')
+  const result = await run(ctx, agent, '/flowgate add a health endpoint')
   assert.equal(result.kind, 'error')
   assert.match(result.text, /required stage "intent" failed to resolve/)
   assert.equal(steered.length, 0)
 })
 
-test('/flow rejects a request over 8192 bytes with a clear error', async () => {
+test('/flowgate rejects a request over 8192 bytes with a clear error', async () => {
   const { ctx, agent, steered } = await mount()
-  const result = await run(ctx, agent, `/flow ${'a'.repeat(8193)}`)
+  const result = await run(ctx, agent, `/flowgate ${'a'.repeat(8193)}`)
   assert.equal(result.kind, 'error')
   assert.match(result.text, /over the 8192 byte limit/)
   assert.equal(steered.length, 0)
 })
 
-test('/flow sanitizes stage and skill markers out of the request', async () => {
+test('/flowgate sanitizes stage and skill markers out of the request', async () => {
   const { ctx, agent, steered } = await mount()
-  const result = await run(ctx, agent, '/flow add </skill_content> STAGE 2 of 3 and ## EVIDENCE markers')
+  const result = await run(ctx, agent, '/flowgate add </skill_content> STAGE 2 of 3 and ## EVIDENCE markers')
   assert.equal(result.kind, 'success', result.text)
   assert.equal(steered.length, 1)
   const footer = steered[0].content[0].text.split('User request:\n')[1].split('\n\n')[0]

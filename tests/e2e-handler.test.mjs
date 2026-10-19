@@ -9,7 +9,7 @@ import * as SkillFileSystem from '@deepseek-ai/dsh-skill-filesystem'
 import { SKILLS_DIR, shippedSkills } from '../lib/catalog.js'
 import * as flowgate from '../lib/index.js'
 
-const EXPECTED_COMMANDS = ['constrain', 'flow', 'handoff', 'intent', 'prove', 'recover', 'review', 'slice', 'spec']
+const EXPECTED_COMMANDS = ['constrain', 'flowgate', 'handoff', 'intent', 'prove', 'recover', 'review', 'slice', 'spec']
 const FOREIGN_OWNER = 'a foreign plugin owns this name'
 
 async function stack() {
@@ -57,7 +57,7 @@ test('every registered command carries a non-empty description', async () => {
 
 test('the flow command advertises an input hint', async () => {
   const { ctx, agent } = await mount()
-  const definition = ctx.commands.find(agent, 'flow')
+  const definition = ctx.commands.find(agent, 'flowgate')
   assert.notEqual(definition, undefined)
   assert.equal(typeof definition.input?.hint === 'string' && definition.input.hint.length > 0, true)
 })

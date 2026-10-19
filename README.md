@@ -34,13 +34,13 @@ A host restart activates the commands.
 | `/constrain` | Load constrain skill. |
 | `/recover` | Load recover skill. |
 | `/handoff` | Load handoff skill. |
-| `/flow` | Compose a workflow from the request. |
+| `/flowgate` | Compose a workflow from the request. |
 
 Each alias command looks up the skill by name, verifies it is user-invocable, and
-steers the agent with the skill body plus the user's request. `/flow` selects a
+steers the agent with the skill body plus the user's request. `/flowgate` selects a
 workflow from the request, resolves its stages through the host catalog,
 validates the artifact chain, and steers exactly one composed message.
-`/flow --dry-run` prints the resolved workflow, stage order, artifact flow, and
+`/flowgate --dry-run` prints the resolved workflow, stage order, artifact flow, and
 per-stage body size without steering.
 
 ## Workflows
@@ -103,7 +103,7 @@ substitute in `cordis.patch.yml`.
 - The evidence block can become ritual: an agent may fill it with filler to
   satisfy the format. Nothing mechanical in v1 rejects that. A future version
   may parse the block and reject empty fields.
-- v1 composes one steering message per `/flow` invocation. The DSH API exposes
+- v1 composes one steering message per `/flowgate` invocation. The DSH API exposes
   no hook for a plugin to drive a multi-turn stage machine, so gating relies on
   the agent honoring the composed message. The message states the gating rule
   three times (header, per-stage, footer) as mitigation.
