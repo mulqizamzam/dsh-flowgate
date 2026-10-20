@@ -14,6 +14,10 @@ The harness is honest about its ceiling: gates are **validated**, not
 also blocking remediation, so Flowgate states that limitation in every dry run,
 status, and report instead of claiming a lock it does not have.
 
+**Source of truth:** [PRD.md](PRD.md) (v2) is the authoritative specification for
+this plugin. The v1 specification is archived at
+[docs/archive/PRD-v1.md](docs/archive/PRD-v1.md) and is historical only.
+
 ## Install
 
 From the plugin directory:

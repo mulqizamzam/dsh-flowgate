@@ -23,8 +23,10 @@
     "assets",
     "schemas",
     "docs",
+    "!docs/archive",
     "cordis.patch.yml",
     "LICENSE",
+    "PRD.md",
     "README.md",
     "scripts"
   ],
