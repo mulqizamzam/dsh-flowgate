@@ -124,43 +124,43 @@ test('workflow validator rejects a duplicated stage skill', () => {
 test('workflow validator rejects a non-integer priority', () => {
   const data = workflowFixture()
   data.match.priority = 1.5
-  assert.throws(() => validateWorkflow(data, SOURCE), /match.priority must be an integer/)
+  assert.throws(() => validateWorkflow(data, SOURCE), /expected integer/)
 })
 
 test('workflow validator rejects empty or blank keyword lists', () => {
   const empty = workflowFixture()
   empty.match.keywords = []
-  assert.throws(() => validateWorkflow(empty, SOURCE), /keywords must be a non-empty array/)
+  assert.throws(() => validateWorkflow(empty, SOURCE), /array has fewer than 1 items at #\/match\/keywords/)
   const blank = workflowFixture()
   blank.match.keywords = ['']
-  assert.throws(() => validateWorkflow(blank, SOURCE), /keywords entries must be non-empty strings/)
+  assert.throws(() => validateWorkflow(blank, SOURCE), /string is shorter than 1 characters at #\/match\/keywords\/0/)
 })
 
 test('workflow validator rejects an out-of-range on_optional_missing', () => {
   const data = workflowFixture()
   data.on_optional_missing = 'stop'
-  assert.throws(() => validateWorkflow(data, SOURCE), /on_optional_missing must be one of skip, fail/)
+  assert.throws(() => validateWorkflow(data, SOURCE), /value is not one of "skip", "fail"/)
 })
 
 test('workflow validator rejects empty stages, rules, and completion', () => {
   const noStages = workflowFixture()
   noStages.stages = []
-  assert.throws(() => validateWorkflow(noStages, SOURCE), /stages must be a non-empty array/)
+  assert.throws(() => validateWorkflow(noStages, SOURCE), /array has fewer than 1 items at #\/stages/)
   const noRules = workflowFixture()
   noRules.rules = []
-  assert.throws(() => validateWorkflow(noRules, SOURCE), /rules must be a non-empty array/)
+  assert.throws(() => validateWorkflow(noRules, SOURCE), /array has fewer than 1 items at #\/rules/)
   const noCompletion = workflowFixture()
   noCompletion.completion = ''
-  assert.throws(() => validateWorkflow(noCompletion, SOURCE), /completion must be a non-empty string/)
+  assert.throws(() => validateWorkflow(noCompletion, SOURCE), /string is shorter than 1 characters at #\/completion/)
 })
 
 test('workflow validator rejects a missing or wrong schema_version', () => {
   const missing = workflowFixture()
   delete missing.schema_version
-  assert.throws(() => validateWorkflow(missing, SOURCE), /schema_version must be 1/)
+  assert.throws(() => validateWorkflow(missing, SOURCE), /missing required property "schema_version"/)
   const wrong = workflowFixture()
-  wrong.schema_version = 2
-  assert.throws(() => validateWorkflow(wrong, SOURCE), /schema_version must be 1/)
+  wrong.schema_version = 3
+  assert.throws(() => validateWorkflow(wrong, SOURCE), /expected constant 1/)
 })
 
 test('workflow loader rejects a name that does not match the file stem', () => {

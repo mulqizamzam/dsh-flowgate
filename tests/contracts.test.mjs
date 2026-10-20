@@ -73,7 +73,7 @@ test('loader rejects an unknown produced artifact', () => {
 test('loader rejects an unknown consumed artifact', () => {
   const data = contractsFixture(['intent', 'spec'])
   data.contracts.spec.consumes = ['Ghost']
-  assert.throws(() => validateContracts(data, SOURCE, ['intent', 'spec']), /consumes unknown artifact "Ghost"/)
+  assert.throws(() => validateContracts(data, SOURCE, ['intent', 'spec']), /unknown artifact "Ghost"/)
 })
 
 test('loader rejects an unknown category', () => {
@@ -85,20 +85,20 @@ test('loader rejects an unknown category', () => {
 test('loader rejects an unknown risk_level', () => {
   const data = contractsFixture(['intent', 'spec'])
   data.contracts.intent.risk_level = 'extreme'
-  assert.throws(() => validateContracts(data, SOURCE, ['intent', 'spec']), /unknown risk_level "extreme"/)
+  assert.throws(() => validateContracts(data, SOURCE, ['intent', 'spec']), /value is not one of "low", "medium", "high"/)
 })
 
 test('loader rejects a missing schema_version', () => {
   const data = contractsFixture(['intent', 'spec'])
   delete data.schema_version
-  assert.throws(() => validateContracts(data, SOURCE, ['intent', 'spec']), /schema_version must be 1/)
+  assert.throws(() => validateContracts(data, SOURCE, ['intent', 'spec']), /missing required property "schema_version"/)
 })
 
 test('loader rejects a produce and consume self-loop', () => {
   const data = contractsFixture(['intent', 'spec'])
   data.contracts.intent.consumes = ['Intent']
   data.contracts.intent.requires = ['Intent']
-  assert.throws(() => validateContracts(data, SOURCE, ['intent', 'spec']), /produces and consumes the same artifact "Intent"/)
+  assert.throws(() => validateContracts(data, SOURCE, ['intent', 'spec']), /produces and consumes the same artifact/)
 })
 
 test('every shipped workflow artifact chain validates', () => {

@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "flowgate/evidence-record",
+  "title": "Flowgate evidence record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evidence_id",
+    "contract_evidence_id",
+    "evidence_type",
+    "supports",
+    "provenance",
+    "observed",
+    "binds_to",
+    "validation",
+    "status",
+    "freshness_reason",
+    "producer",
+    "created_at"
+  ],
+  "definitions": {
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "digest"],
+      "properties": {
+        "ref": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "validationError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  },
+  "properties": {
+    "evidence_id": { "type": "string", "pattern": "^ev-[a-z0-9-]+$" },
+    "contract_evidence_id": { "type": "string", "minLength": 1, "pattern": "^[a-z][a-z0-9_]*$" },
+    "evidence_type": {
+      "enum": ["operator_input", "artifact_inspection", "command_execution", "test_execution", "review_result", "declared_evidence"]
+    },
+    "supports": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "observation_id", "command"],
+      "properties": {
+        "kind": { "enum": ["operator_input", "observed_command", "observed_tool", "agent_statement"] },
+        "observation_id": { "type": ["string", "null"] },
+        "command": { "type": ["string", "null"] }
+      }
+    },
+    "observed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result", "excerpt"],
+      "properties": {
+        "result": { "enum": ["pass", "fail", "none", "declared"] },
+        "excerpt": { "type": "string", "maxLength": 2048 }
+      }
+    },
+    "binds_to": { "type": "array", "items": { "$ref": "#/definitions/binding" } },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "ok", "errors"],
+      "properties": {
+        "method": { "enum": ["structural", "observed_command_match", "operator_input"] },
+        "ok": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/definitions/validationError" } }
+      }
+    },
+    "status": { "enum": ["missing", "current", "stale", "needs_revalidation", "invalid"] },
+    "freshness_reason": { "type": ["string", "null"] },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "attempt_id"],
+      "properties": {
+        "stage": { "type": "string", "minLength": 1 },
+        "attempt_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "created_at": { "type": "string", "minLength": 1 }
+  }
+}

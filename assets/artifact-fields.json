@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "fields": {
+    "Intent": {
+      "required": ["GOAL", "NON_GOALS", "SUCCESS_CRITERIA", "UNKNOWNS"]
+    },
+    "Spec": {
+      "required": ["INTERFACES", "BOUNDARIES", "TEST_STRATEGY", "ACCEPTANCE"]
+    },
+    "SlicePlan": {
+      "required": ["SCOPE", "PROOF", "ROLLBACK"]
+    },
+    "Proof": {
+      "required": ["WHAT_IS_PROVEN", "HOW", "FAILING_BEFORE", "PASSING_AFTER", "EDGE_CASES"]
+    },
+    "Review": {
+      "required": ["SEVERITY", "LOCATION", "ISSUE", "FIX", "UNREVIEWED"],
+      "enumerated": {
+        "SEVERITY": ["high", "medium", "low"]
+      }
+    },
+    "Constraints": {
+      "required": ["NAME", "THRESHOLD", "HOW_ENFORCED", "FAILURE_ACTION"]
+    },
+    "Diagnosis": {
+      "required": ["SYMPTOM", "REPRO", "ROOT_CAUSE", "FIX", "PREVENTION", "CONFIDENCE"],
+      "enumerated": {
+        "CONFIDENCE": ["high", "medium", "low"]
+      }
+    },
+    "Handoff": {
+      "required": ["STATUS", "CHANGED", "VERIFIED", "NOT_VERIFIED", "RISKS", "OPEN_ITEMS", "NEXT_ACTION"]
+    }
+  }
+}

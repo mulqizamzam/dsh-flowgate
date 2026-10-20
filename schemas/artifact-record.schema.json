@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "flowgate/artifact-record",
+  "title": "Flowgate artifact record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_id",
+    "artifact_type",
+    "schema_version",
+    "producer",
+    "status",
+    "freshness",
+    "digest",
+    "content",
+    "content_bytes",
+    "inputs",
+    "validation",
+    "evidence_ids",
+    "created_at",
+    "validated_at"
+  ],
+  "definitions": {
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "digest"],
+      "properties": {
+        "ref": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "validationError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "validationCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "ok"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "ok": { "type": "boolean" },
+        "detail": { "type": ["string", "null"] }
+      }
+    }
+  },
+  "properties": {
+    "artifact_id": { "type": "string", "pattern": "^art-[a-z0-9-]+$" },
+    "artifact_type": { "type": "string", "minLength": 1 },
+    "schema_version": { "const": 1 },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "attempt_id"],
+      "properties": {
+        "stage": { "type": "string", "minLength": 1 },
+        "attempt_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "status": { "enum": ["missing", "present", "valid", "invalid"] },
+    "freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason"],
+      "properties": {
+        "status": { "enum": ["current", "needs_revalidation"] },
+        "reason": { "type": ["string", "null"] }
+      }
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "content": { "type": "string", "maxLength": 65536 },
+    "content_bytes": { "type": "integer", "minimum": 0, "maximum": 65536 },
+    "inputs": { "type": "array", "items": { "$ref": "#/definitions/binding" } },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ok", "checks", "errors"],
+      "properties": {
+        "ok": { "type": "boolean" },
+        "checks": { "type": "array", "items": { "$ref": "#/definitions/validationCheck" } },
+        "errors": { "type": "array", "items": { "$ref": "#/definitions/validationError" } }
+      }
+    },
+    "evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^ev-[a-z0-9-]+$" }
+    },
+    "created_at": { "type": "string", "minLength": 1 },
+    "validated_at": { "type": ["string", "null"] }
+  }
+}

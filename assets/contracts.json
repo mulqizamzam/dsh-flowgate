@@ -1,74 +1,335 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
+  "contract_version": 2,
   "vocabulary": {
-    "artifacts": ["Intent", "Spec", "SlicePlan", "Proof", "Review", "Constraints", "Diagnosis", "Handoff", "user-request"],
+    "artifacts": [
+      "Intent",
+      "Spec",
+      "SlicePlan",
+      "Proof",
+      "Review",
+      "Constraints",
+      "Diagnosis",
+      "Handoff",
+      "user-request"
+    ],
     "categories": ["frame", "specify", "plan", "prove", "review", "guard", "recover", "close"],
     "risk_levels": ["low", "medium", "high"]
   },
+  "evidence_types": [
+    "operator_input",
+    "artifact_inspection",
+    "command_execution",
+    "test_execution",
+    "review_result",
+    "declared_evidence"
+  ],
+  "provenance_kinds": ["operator_input", "observed_command", "observed_tool", "agent_statement"],
+  "check_types": [
+    "artifact_fields",
+    "artifact_schema",
+    "evidence_block",
+    "evidence_validation",
+    "evidence_current"
+  ],
+  "side_effect_classes": ["read_only", "local_write", "external_mutation"],
+  "retry_policies": ["safe_idempotent", "manual_approval_required", "not_retryable"],
   "contracts": {
     "intent": {
+      "contract_version": 2,
       "produces": ["Intent"],
       "consumes": ["user-request"],
       "requires": ["user-request"],
       "requires_any": [],
       "categories": ["frame"],
-      "risk_level": "low"
+      "risk_level": "low",
+      "evidence": [
+        {
+          "id": "request_recorded",
+          "type": "operator_input",
+          "supports": ["GOAL"],
+          "bind_to_inputs": ["user-request"],
+          "accepted_provenance": ["operator_input"],
+          "freshness_policy": "invalidate_on_dependency_change"
+        }
+      ],
+      "checks": [
+        { "id": "intent_fields", "type": "artifact_fields" },
+        { "id": "intent_schema", "type": "artifact_schema" },
+        { "id": "intent_evidence_block", "type": "evidence_block" },
+        { "id": "intent_evidence_valid", "type": "evidence_validation" },
+        { "id": "intent_evidence_current", "type": "evidence_current" }
+      ],
+      "dependencies": { "unknown_impact_policy": "needs_revalidation" },
+      "completion": {
+        "required_checks": "all",
+        "missing_prerequisite": "blocked",
+        "unmet_criterion": "failed",
+        "checker_error": "error"
+      },
+      "recovery": { "checkpoint_eligible": true, "require_current_evidence": true },
+      "side_effects": { "class": "read_only", "retry_policy": "safe_idempotent" }
     },
     "spec": {
+      "contract_version": 2,
       "produces": ["Spec"],
       "consumes": ["Intent"],
       "requires": ["Intent"],
       "requires_any": [],
       "categories": ["specify"],
-      "risk_level": "low"
+      "risk_level": "low",
+      "evidence": [
+        {
+          "id": "acceptance_recorded",
+          "type": "artifact_inspection",
+          "supports": ["ACCEPTANCE"],
+          "bind_to_inputs": ["Intent"],
+          "accepted_provenance": ["observed_tool", "agent_statement"],
+          "freshness_policy": "invalidate_on_dependency_change"
+        }
+      ],
+      "checks": [
+        { "id": "spec_fields", "type": "artifact_fields" },
+        { "id": "spec_schema", "type": "artifact_schema" },
+        { "id": "spec_evidence_block", "type": "evidence_block" },
+        { "id": "spec_evidence_valid", "type": "evidence_validation" },
+        { "id": "spec_evidence_current", "type": "evidence_current" }
+      ],
+      "dependencies": { "unknown_impact_policy": "needs_revalidation" },
+      "completion": {
+        "required_checks": "all",
+        "missing_prerequisite": "blocked",
+        "unmet_criterion": "failed",
+        "checker_error": "error"
+      },
+      "recovery": { "checkpoint_eligible": true, "require_current_evidence": true },
+      "side_effects": { "class": "read_only", "retry_policy": "safe_idempotent" }
     },
     "slice": {
+      "contract_version": 2,
       "produces": ["SlicePlan"],
       "consumes": ["Intent", "Spec"],
       "requires": ["Spec"],
       "requires_any": [],
       "categories": ["plan"],
-      "risk_level": "low"
+      "risk_level": "low",
+      "evidence": [
+        {
+          "id": "slices_recorded",
+          "type": "declared_evidence",
+          "supports": ["SCOPE", "PROOF", "ROLLBACK"],
+          "bind_to_inputs": ["Spec"],
+          "accepted_provenance": ["agent_statement"],
+          "freshness_policy": "invalidate_on_dependency_change"
+        }
+      ],
+      "checks": [
+        { "id": "slice_fields", "type": "artifact_fields" },
+        { "id": "slice_schema", "type": "artifact_schema" },
+        { "id": "slice_evidence_block", "type": "evidence_block" },
+        { "id": "slice_evidence_valid", "type": "evidence_validation" },
+        { "id": "slice_evidence_current", "type": "evidence_current" }
+      ],
+      "dependencies": { "unknown_impact_policy": "needs_revalidation" },
+      "completion": {
+        "required_checks": "all",
+        "missing_prerequisite": "blocked",
+        "unmet_criterion": "failed",
+        "checker_error": "error"
+      },
+      "recovery": { "checkpoint_eligible": true, "require_current_evidence": true },
+      "side_effects": { "class": "read_only", "retry_policy": "safe_idempotent" }
     },
     "prove": {
+      "contract_version": 2,
       "produces": ["Proof"],
       "consumes": ["user-request", "Intent", "Spec", "SlicePlan", "Diagnosis", "Constraints"],
       "requires": ["user-request"],
       "requires_any": ["SlicePlan", "Diagnosis", "Constraints"],
       "categories": ["prove"],
-      "risk_level": "medium"
+      "risk_level": "medium",
+      "evidence": [
+        {
+          "id": "failing_before_observed",
+          "type": "test_execution",
+          "supports": ["FAILING_BEFORE"],
+          "bind_to_inputs": ["user-request"],
+          "accepted_provenance": ["observed_command", "observed_tool"],
+          "freshness_policy": "invalidate_on_dependency_change"
+        },
+        {
+          "id": "passing_after_observed",
+          "type": "test_execution",
+          "supports": ["PASSING_AFTER"],
+          "bind_to_inputs": ["user-request"],
+          "accepted_provenance": ["observed_command", "observed_tool"],
+          "freshness_policy": "invalidate_on_dependency_change"
+        }
+      ],
+      "checks": [
+        { "id": "proof_fields", "type": "artifact_fields" },
+        { "id": "proof_schema", "type": "artifact_schema" },
+        { "id": "proof_evidence_block", "type": "evidence_block" },
+        { "id": "proof_evidence_valid", "type": "evidence_validation" },
+        { "id": "proof_evidence_current", "type": "evidence_current" }
+      ],
+      "dependencies": { "unknown_impact_policy": "needs_revalidation" },
+      "completion": {
+        "required_checks": "all",
+        "missing_prerequisite": "blocked",
+        "unmet_criterion": "failed",
+        "checker_error": "error"
+      },
+      "recovery": { "checkpoint_eligible": true, "require_current_evidence": true },
+      "side_effects": { "class": "local_write", "retry_policy": "safe_idempotent" }
     },
     "review": {
+      "contract_version": 2,
       "produces": ["Review"],
       "consumes": ["user-request", "Intent", "Spec", "SlicePlan", "Proof", "Constraints", "Diagnosis"],
       "requires": ["Proof"],
       "requires_any": [],
       "categories": ["review"],
-      "risk_level": "medium"
+      "risk_level": "medium",
+      "evidence": [
+        {
+          "id": "review_findings_recorded",
+          "type": "review_result",
+          "supports": ["SEVERITY", "LOCATION", "ISSUE", "FIX", "UNREVIEWED"],
+          "bind_to_inputs": ["Proof"],
+          "accepted_provenance": ["agent_statement", "observed_tool"],
+          "freshness_policy": "invalidate_on_dependency_change"
+        }
+      ],
+      "checks": [
+        { "id": "review_fields", "type": "artifact_fields" },
+        { "id": "review_schema", "type": "artifact_schema" },
+        { "id": "review_evidence_block", "type": "evidence_block" },
+        { "id": "review_evidence_valid", "type": "evidence_validation" },
+        { "id": "review_evidence_current", "type": "evidence_current" }
+      ],
+      "dependencies": { "unknown_impact_policy": "needs_revalidation" },
+      "completion": {
+        "required_checks": "all",
+        "missing_prerequisite": "blocked",
+        "unmet_criterion": "failed",
+        "checker_error": "error"
+      },
+      "recovery": { "checkpoint_eligible": true, "require_current_evidence": true },
+      "side_effects": { "class": "read_only", "retry_policy": "safe_idempotent" }
     },
     "constrain": {
+      "contract_version": 2,
       "produces": ["Constraints"],
       "consumes": ["user-request"],
       "requires": ["user-request"],
       "requires_any": [],
       "categories": ["guard"],
-      "risk_level": "low"
+      "risk_level": "low",
+      "evidence": [
+        {
+          "id": "thresholds_recorded",
+          "type": "declared_evidence",
+          "supports": ["NAME", "THRESHOLD", "HOW_ENFORCED", "FAILURE_ACTION"],
+          "bind_to_inputs": ["user-request"],
+          "accepted_provenance": ["agent_statement", "operator_input"],
+          "freshness_policy": "invalidate_on_dependency_change"
+        }
+      ],
+      "checks": [
+        { "id": "constraints_fields", "type": "artifact_fields" },
+        { "id": "constraints_schema", "type": "artifact_schema" },
+        { "id": "constraints_evidence_block", "type": "evidence_block" },
+        { "id": "constraints_evidence_valid", "type": "evidence_validation" },
+        { "id": "constraints_evidence_current", "type": "evidence_current" }
+      ],
+      "dependencies": { "unknown_impact_policy": "needs_revalidation" },
+      "completion": {
+        "required_checks": "all",
+        "missing_prerequisite": "blocked",
+        "unmet_criterion": "failed",
+        "checker_error": "error"
+      },
+      "recovery": { "checkpoint_eligible": true, "require_current_evidence": true },
+      "side_effects": { "class": "read_only", "retry_policy": "safe_idempotent" }
     },
     "recover": {
+      "contract_version": 2,
       "produces": ["Diagnosis"],
       "consumes": ["user-request", "Intent", "Spec", "Proof"],
       "requires": ["user-request"],
       "requires_any": [],
       "categories": ["recover"],
-      "risk_level": "high"
+      "risk_level": "high",
+      "evidence": [
+        {
+          "id": "repro_observed",
+          "type": "command_execution",
+          "supports": ["REPRO"],
+          "bind_to_inputs": ["user-request"],
+          "accepted_provenance": ["observed_command", "observed_tool"],
+          "freshness_policy": "invalidate_on_dependency_change"
+        },
+        {
+          "id": "root_cause_recorded",
+          "type": "artifact_inspection",
+          "supports": ["ROOT_CAUSE"],
+          "bind_to_inputs": ["user-request"],
+          "accepted_provenance": ["agent_statement", "observed_tool"],
+          "freshness_policy": "invalidate_on_dependency_change"
+        }
+      ],
+      "checks": [
+        { "id": "diagnosis_fields", "type": "artifact_fields" },
+        { "id": "diagnosis_schema", "type": "artifact_schema" },
+        { "id": "diagnosis_evidence_block", "type": "evidence_block" },
+        { "id": "diagnosis_evidence_valid", "type": "evidence_validation" },
+        { "id": "diagnosis_evidence_current", "type": "evidence_current" }
+      ],
+      "dependencies": { "unknown_impact_policy": "needs_revalidation" },
+      "completion": {
+        "required_checks": "all",
+        "missing_prerequisite": "blocked",
+        "unmet_criterion": "failed",
+        "checker_error": "error"
+      },
+      "recovery": { "checkpoint_eligible": true, "require_current_evidence": true },
+      "side_effects": { "class": "read_only", "retry_policy": "safe_idempotent" }
     },
     "handoff": {
+      "contract_version": 2,
       "produces": ["Handoff"],
       "consumes": ["user-request", "Intent", "Spec", "SlicePlan", "Proof", "Review", "Constraints", "Diagnosis"],
       "requires": ["user-request"],
       "requires_any": ["Diagnosis", "Review", "Proof"],
       "categories": ["close"],
-      "risk_level": "low"
+      "risk_level": "low",
+      "evidence": [
+        {
+          "id": "state_recorded",
+          "type": "declared_evidence",
+          "supports": ["CHANGED", "VERIFIED", "NOT_VERIFIED", "NEXT_ACTION"],
+          "bind_to_inputs": ["user-request"],
+          "accepted_provenance": ["agent_statement", "operator_input", "observed_command"],
+          "freshness_policy": "invalidate_on_dependency_change"
+        }
+      ],
+      "checks": [
+        { "id": "handoff_fields", "type": "artifact_fields" },
+        { "id": "handoff_schema", "type": "artifact_schema" },
+        { "id": "handoff_evidence_block", "type": "evidence_block" },
+        { "id": "handoff_evidence_valid", "type": "evidence_validation" },
+        { "id": "handoff_evidence_current", "type": "evidence_current" }
+      ],
+      "dependencies": { "unknown_impact_policy": "needs_revalidation" },
+      "completion": {
+        "required_checks": "all",
+        "missing_prerequisite": "blocked",
+        "unmet_criterion": "failed",
+        "checker_error": "error"
+      },
+      "recovery": { "checkpoint_eligible": true, "require_current_evidence": true },
+      "side_effects": { "class": "local_write", "retry_policy": "safe_idempotent" }
     }
   }
 }

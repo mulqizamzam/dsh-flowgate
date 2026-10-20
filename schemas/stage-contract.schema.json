@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "flowgate/stage-contract",
+  "title": "Flowgate stage contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "produces",
+    "consumes",
+    "requires",
+    "requires_any",
+    "categories",
+    "risk_level",
+    "evidence",
+    "checks",
+    "dependencies",
+    "completion",
+    "recovery",
+    "side_effects"
+  ],
+  "definitions": {
+    "artifactRef": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z][A-Za-z0-9-]*$"
+    },
+    "evidenceRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "supports", "bind_to_inputs", "accepted_provenance", "freshness_policy"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "pattern": "^[a-z][a-z0-9_]*$" },
+        "type": {
+          "enum": ["operator_input", "artifact_inspection", "command_execution", "test_execution", "review_result", "declared_evidence"]
+        },
+        "supports": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "bind_to_inputs": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/artifactRef" }
+        },
+        "accepted_provenance": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["operator_input", "observed_command", "observed_tool", "agent_statement"] }
+        },
+        "freshness_policy": {
+          "enum": ["invalidate_on_dependency_change", "retain_until_explicit_change"]
+        }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "pattern": "^[a-z][a-z0-9_]*$" },
+        "type": {
+          "enum": ["artifact_fields", "artifact_schema", "evidence_block", "evidence_validation", "evidence_current"]
+        }
+      }
+    }
+  },
+  "properties": {
+    "contract_version": { "const": 2 },
+    "purpose": { "type": "string", "minLength": 1 },
+    "produces": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/artifactRef" }
+    },
+    "consumes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/artifactRef" }
+    },
+    "requires": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/artifactRef" }
+    },
+    "requires_any": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/artifactRef" }
+    },
+    "categories": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "risk_level": { "enum": ["low", "medium", "high"] },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/evidenceRequirement" }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/check" }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unknown_impact_policy"],
+      "properties": {
+        "unknown_impact_policy": { "enum": ["needs_revalidation", "stale"] }
+      }
+    },
+    "completion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_checks", "missing_prerequisite", "unmet_criterion", "checker_error"],
+      "properties": {
+        "required_checks": { "const": "all" },
+        "missing_prerequisite": { "const": "blocked" },
+        "unmet_criterion": { "const": "failed" },
+        "checker_error": { "const": "error" }
+      }
+    },
+    "recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checkpoint_eligible", "require_current_evidence"],
+      "properties": {
+        "checkpoint_eligible": { "type": "boolean" },
+        "require_current_evidence": { "type": "boolean" }
+      }
+    },
+    "side_effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "retry_policy"],
+      "properties": {
+        "class": { "enum": ["read_only", "local_write", "external_mutation"] },
+        "retry_policy": { "enum": ["safe_idempotent", "manual_approval_required", "not_retryable"] }
+      }
+    }
+  }
+}

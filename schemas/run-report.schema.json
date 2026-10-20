@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "flowgate/run-report",
+  "title": "Flowgate run report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "report_version",
+    "schema_version",
+    "run_id",
+    "generated_at",
+    "engine_version",
+    "status",
+    "workflow",
+    "routing",
+    "stages",
+    "artifacts",
+    "evidence",
+    "gates",
+    "review",
+    "invalidations",
+    "checkpoints",
+    "errors",
+    "enforcement",
+    "completion",
+    "limitations"
+  ],
+  "definitions": {
+    "gateReason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "message": { "type": "string", "minLength": 1 }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "status", "reasons", "checked_at"],
+      "properties": {
+        "stage": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["pending", "passed", "failed", "blocked", "error"] },
+        "reasons": { "type": "array", "items": { "$ref": "#/definitions/gateReason" } },
+        "checked_at": { "type": ["string", "null"] }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "status", "detail"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": {
+          "enum": ["artifact_fields", "artifact_schema", "evidence_block", "evidence_validation", "evidence_current"]
+        },
+        "status": { "enum": ["pending", "passed", "failed", "error"] },
+        "detail": { "type": ["string", "null"] }
+      }
+    }
+  },
+  "properties": {
+    "report_version": { "const": 1 },
+    "schema_version": { "const": 2 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "engine_version": { "type": "string", "minLength": 1 },
+    "status": {
+      "enum": ["created", "planned", "running", "paused", "completed", "failed", "blocked", "cancelled"]
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "contract_version", "stage_count"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "contract_version": { "type": "integer", "minimum": 1 },
+        "stage_count": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "routing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scores", "selected", "reason", "fallback"],
+      "properties": {
+        "scores": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["workflow", "score", "priority", "selected"],
+            "properties": {
+              "workflow": { "type": "string", "minLength": 1 },
+              "score": { "type": "integer", "minimum": 0 },
+              "priority": { "type": "integer" },
+              "selected": { "type": "boolean" }
+            }
+          }
+        },
+        "selected": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 },
+        "fallback": { "type": "boolean" }
+      }
+    },
+    "stages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "position",
+          "skill",
+          "artifact",
+          "required",
+          "attempts",
+          "state",
+          "gate",
+          "artifact_ids",
+          "evidence_ids",
+          "checks"
+        ],
+        "properties": {
+          "position": { "type": "integer", "minimum": 1 },
+          "skill": { "type": "string", "minLength": 1 },
+          "artifact": { "type": "string", "minLength": 1 },
+          "required": { "type": "boolean" },
+          "attempts": { "type": "integer", "minimum": 0 },
+          "state": {
+            "enum": ["pending", "ready", "running", "validating", "passed", "failed", "blocked", "error", "cancelled"]
+          },
+          "gate": { "$ref": "#/definitions/gate" },
+          "artifact_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "evidence_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "checks": { "type": "array", "items": { "$ref": "#/definitions/check" } }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "artifact_id",
+          "artifact_type",
+          "status",
+          "freshness",
+          "digest",
+          "validation_ok",
+          "input_refs",
+          "created_at"
+        ],
+        "properties": {
+          "artifact_id": { "type": "string", "minLength": 1 },
+          "artifact_type": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["missing", "present", "valid", "invalid"] },
+          "freshness": { "enum": ["current", "needs_revalidation"] },
+          "digest": { "type": "string", "minLength": 1 },
+          "validation_ok": { "type": "boolean" },
+          "input_refs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "created_at": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evidence_id",
+          "contract_evidence_id",
+          "evidence_type",
+          "status",
+          "provenance",
+          "supports",
+          "bind_refs",
+          "validation_ok",
+          "freshness_reason",
+          "observed_excerpt"
+        ],
+        "properties": {
+          "evidence_id": { "type": "string", "minLength": 1 },
+          "contract_evidence_id": { "type": "string", "minLength": 1 },
+          "evidence_type": {
+            "enum": ["operator_input", "artifact_inspection", "command_execution", "test_execution", "review_result", "declared_evidence"]
+          },
+          "status": { "enum": ["missing", "current", "stale", "needs_revalidation", "invalid"] },
+          "provenance": { "enum": ["operator_input", "observed_command", "observed_tool", "agent_statement"] },
+          "supports": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "bind_refs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "validation_ok": { "type": "boolean" },
+          "freshness_reason": { "type": ["string", "null"] },
+          "observed_excerpt": { "type": "string", "maxLength": 240 }
+        }
+      }
+    },
+    "gates": { "type": "array", "items": { "$ref": "#/definitions/gate" } },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "status", "reason"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "status": { "enum": ["not_required", "pending", "approved", "changes_requested"] },
+        "reason": { "type": ["string", "null"] }
+      }
+    },
+    "invalidations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["decision_id", "changed", "fingerprint_changed", "policy", "affected", "reason"],
+        "properties": {
+          "decision_id": { "type": "string", "minLength": 1 },
+          "changed": { "type": "string", "minLength": 1 },
+          "fingerprint_changed": { "type": "boolean" },
+          "policy": { "enum": ["invalidate", "stale", "revalidate", "retain"] },
+          "affected": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "checkpoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["created", "selected", "rejected"],
+      "properties": {
+        "created": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "selected": { "type": ["string", "null"] },
+        "rejected": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["checkpoint_id", "reasons"],
+            "properties": {
+              "checkpoint_id": { "type": "string", "minLength": 1 },
+              "reasons": { "type": "array", "items": { "$ref": "#/definitions/gateReason" } }
+            }
+          }
+        }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "message"],
+        "properties": {
+          "code": { "type": "string", "minLength": 1 },
+          "message": { "type": "string", "minLength": 1 },
+          "remediation": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "enforcement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "pre_step", "limitations"],
+      "properties": {
+        "level": { "enum": ["declared", "validated", "enforced"] },
+        "pre_step": { "enum": ["not_used", "available_not_used", "enforced"] },
+        "limitations": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "completion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reasons", "decided_at"],
+      "properties": {
+        "status": { "enum": ["pending", "completed", "failed", "blocked"] },
+        "reasons": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "decided_at": { "type": ["string", "null"] }
+      }
+    },
+    "limitations": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "flowgate/dependency-edge",
+  "title": "Flowgate dependency edge",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["edge_id", "from", "to", "kind", "policy", "rationale"],
+  "properties": {
+    "edge_id": { "type": "string", "minLength": 1, "pattern": "^edge-[a-z0-9-]+$" },
+    "from": { "type": "string", "minLength": 1 },
+    "to": { "type": "string", "minLength": 1 },
+    "kind": { "enum": ["input", "derived_from", "evidence_for", "validated_by", "ordering"] },
+    "policy": { "enum": ["invalidate", "stale", "revalidate", "none"] },
+    "rationale": { "type": ["string", "null"] }
+  }
+}

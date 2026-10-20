@@ -1,7 +1,7 @@
 {
   "name": "dsh-flowgate",
-  "version": "1.0.0",
-  "description": "Evidence-gated engineering workflows for DeepSeek Harness: 8 skills, 5 workflows, 9 commands, one evidence protocol.",
+  "version": "2.0.0",
+  "description": "Evidence-driven, stateful engineering workflows for DeepSeek Harness: 8 skills, 5 workflows, 9 commands, versioned contracts, and dependency-aware invalidation.",
   "keywords": [
     "deepseek-harness",
     "dsh-plugin",
@@ -21,6 +21,8 @@
   "files": [
     "lib",
     "assets",
+    "schemas",
+    "docs",
     "cordis.patch.yml",
     "LICENSE",
     "README.md",
@@ -32,7 +34,9 @@
     }
   },
   "scripts": {
-    "test": "node --test --test-concurrency=1 && node --test --test-concurrency=1 tests/counts.test.mjs"
+    "test": "node scripts/run-gates.mjs",
+    "test:gate": "node scripts/run-gates.mjs --only",
+    "verify:live": "bash scripts/verify-live.sh"
   },
   "dependencies": {
     "@deepseek-ai/dsh-llm": "0.2.0-rc.2",

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "flowgate/workflow",
+  "title": "Flowgate workflow definition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "name", "description", "match", "stages", "rules", "on_optional_missing", "completion"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "name": { "type": "string", "minLength": 1, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "description": { "type": "string", "minLength": 1 },
+    "match": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["keywords", "priority"],
+      "properties": {
+        "keywords": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "pattern": "^[a-z0-9]+$" }
+        },
+        "priority": { "type": "integer", "minimum": 0, "maximum": 1000 }
+      }
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["skill", "required", "purpose"],
+        "properties": {
+          "skill": { "type": "string", "minLength": 1 },
+          "required": { "type": "boolean" },
+          "purpose": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "on_optional_missing": { "enum": ["skip", "fail"] },
+    "completion": { "type": "string", "minLength": 1 }
+  }
+}
