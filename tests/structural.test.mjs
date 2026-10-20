@@ -120,7 +120,15 @@ test('every declared gate file exists and the runner order matches the PRD order
 })
 
 test('every versioned data schema exists', () => {
+  // 10 original v1 schemas + 7 new v2 schemas
   const expected = [
+    'Artifact',
+    'Checkpoint',
+    'DependencyEdge',
+    'Evidence',
+    'Report',
+    'RunState',
+    'StageContract',
     'artifact-fields',
     'artifact-record',
     'checkpoint',

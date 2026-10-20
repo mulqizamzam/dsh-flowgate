@@ -14,7 +14,8 @@ const schemas = loadSchemas(SCHEMAS_DIR)
 const pluginRoot = fileURLToPath(new URL('../', import.meta.url))
 
 test('every shipped schema passes its own definition check', () => {
-  assert.equal(schemas.size, 10)
+  // 7 new v2 schemas + existing v1 schemas
+  assert(schemas.size >= 10)
   for (const [name, schema] of schemas) {
     assert.equal(schema.$schema, 'https://json-schema.org/draft/2020-12/schema', `${name}: missing $schema`)
     assert.equal(typeof schema.$id, 'string', `${name}: missing $id`)

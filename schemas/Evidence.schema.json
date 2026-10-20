@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dsh-flowgate/schemas/Evidence.schema.json",
+  "title": "EvidenceRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "evidence"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "evidence_type", "claim", "provenance", "result", "input_bindings", "validation_method", "freshness_status", "timestamp", "producer_stage", "attempt_id"],
+      "properties": {
+        "evidence_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "evidence_type": { "type": "string", "enum": ["test_execution", "command_output", "artifact_inspection", "human_input", "inferred"] },
+        "claim": { "type": "string", "minLength": 1 },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "details"],
+          "properties": {
+            "source": { "type": "string", "enum": ["observed_command", "observed_test", "observed_artifact", "human_input", "inferred"] },
+            "details": { "type": "object", "additionalProperties": true }
+          }
+        },
+        "result": { "type": "object", "additionalProperties": true },
+        "input_bindings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["ref", "version", "fingerprint"],
+            "properties": {
+              "ref": { "type": "string" },
+              "version": { "type": "string" },
+              "fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            }
+          }
+        },
+        "validation_method": { "type": "string", "enum": ["schema_validation", "acceptance_check", "evidence_cross_check", "manual_review", "automated_tool"] },
+        "freshness_status": { "type": "string", "enum": ["missing", "current", "stale", "needs_revalidation", "invalid"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "producer_stage": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "attempt_id": { "type": "string", "pattern": "^[a-z0-9-]+$" }
+      }
+    }
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dsh-flowgate/schemas/StageContract.schema.json",
+  "title": "StageContract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "stage_contract"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "stage_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "contract_version", "purpose", "inputs", "outputs", "evidence", "checks", "dependencies", "completion", "recovery", "side_effects"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "contract_version": { "type": "integer", "minimum": 1 },
+        "purpose": { "type": "string", "minLength": 1 },
+        "inputs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required"],
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["ref", "accepted_status", "bind_version"],
+                "properties": {
+                  "ref": { "type": "string" },
+                  "accepted_status": { "type": "array", "items": { "type": "string", "enum": ["missing", "present", "valid", "invalid"] } },
+                  "bind_version": { "type": "boolean" }
+                }
+              }
+            },
+            "optional": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["ref", "accepted_status", "bind_version"],
+                "properties": {
+                  "ref": { "type": "string" },
+                  "accepted_status": { "type": "array", "items": { "type": "string", "enum": ["missing", "present", "valid", "invalid"] } },
+                  "bind_version": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required"],
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["ref", "schema_ref", "bind_to_inputs"],
+                "properties": {
+                  "ref": { "type": "string" },
+                  "schema_ref": { "type": "string" },
+                  "bind_to_inputs": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            }
+          }
+        },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required"],
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "type", "supports", "bind_to_inputs", "freshness_policy"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "type": { "type": "string", "enum": ["test_execution", "command_output", "artifact_inspection", "human_input", "inferred"] },
+                  "supports": { "type": "string" },
+                  "bind_to_inputs": { "type": "array", "items": { "type": "string" } },
+                  "freshness_policy": { "type": "string", "enum": ["invalidate_on_dependency_change", "invalidate_on_time", "manual"] }
+                }
+              }
+            }
+          }
+        },
+        "checks": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required"],
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "type"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "type": { "type": "string", "enum": ["artifact_schema", "acceptance_criteria", "evidence_validation", "dependency_freshness", "custom"] }
+                }
+              }
+            }
+          }
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["unknown_impact_policy"],
+          "properties": {
+            "unknown_impact_policy": { "type": "string", "enum": ["needs_revalidation", "stale", "current"] }
+          }
+        },
+        "completion": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required_checks", "missing_prerequisite", "unmet_criterion", "checker_error"],
+          "properties": {
+            "required_checks": { "type": "string", "enum": ["all", "any"] },
+            "missing_prerequisite": { "type": "string", "enum": ["blocked", "failed"] },
+            "unmet_criterion": { "type": "string", "enum": ["failed", "blocked"] },
+            "checker_error": { "type": "string", "enum": ["error", "failed"] }
+          }
+        },
+        "recovery": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["checkpoint_eligible", "require_current_evidence"],
+          "properties": {
+            "checkpoint_eligible": { "type": "boolean" },
+            "require_current_evidence": { "type": "boolean" }
+          }
+        },
+        "side_effects": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["class", "retry_policy"],
+          "properties": {
+            "class": { "type": "string", "enum": ["read_only", "local_write", "external"] },
+            "retry_policy": { "type": "string", "enum": ["safe_idempotent", "manual_approval_required", "not_retryable"] }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dsh-flowgate/schemas/Checkpoint.schema.json",
+  "title": "Checkpoint",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "checkpoint"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checkpoint_id", "run_id", "workflow", "workflow_version", "stage_states", "artifact_versions", "evidence_versions", "gate_outcomes", "dependency_basis", "side_effect_state", "timestamp", "schema_version"],
+      "properties": {
+        "checkpoint_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "run_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "workflow": { "type": "string", "enum": ["feature", "bugfix", "investigation", "migration", "release"] },
+        "workflow_version": { "type": "integer", "minimum": 1 },
+        "stage_states": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["skill", "attempt", "status", "artifact_id"],
+            "properties": {
+              "skill": { "type": "string" },
+              "attempt": { "type": "integer", "minimum": 1 },
+              "status": { "type": "string", "enum": ["passed", "failed", "blocked", "error"] },
+              "artifact_id": { "type": "string" }
+            }
+          }
+        },
+        "artifact_versions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["artifact_id", "fingerprint", "version"],
+            "properties": {
+              "artifact_id": { "type": "string" },
+              "fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "version": { "type": "integer", "minimum": 1 }
+            }
+          }
+        },
+        "evidence_versions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["evidence_id", "fingerprint", "freshness_status"],
+            "properties": {
+              "evidence_id": { "type": "string" },
+              "fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "freshness_status": { "type": "string", "enum": ["current", "stale", "needs_revalidation", "invalid"] }
+            }
+          }
+        },
+        "gate_outcomes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stage", "status", "checks_passed"],
+            "properties": {
+              "stage": { "type": "string" },
+              "status": { "type": "string", "enum": ["passed", "failed", "blocked", "error"] },
+              "checks_passed": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "dependency_basis": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["edge_id", "from_fingerprint", "to_fingerprint"],
+            "properties": {
+              "edge_id": { "type": "string" },
+              "from_fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "to_fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            }
+          }
+        },
+        "side_effect_state": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["completed_operations", "pending_approvals"],
+          "properties": {
+            "completed_operations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["operation_id", "idempotency_key", "result"],
+                "properties": {
+                  "operation_id": { "type": "string" },
+                  "idempotency_key": { "type": "string" },
+                  "result": { "type": "string" }
+                }
+              }
+            },
+            "pending_approvals": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["approval_id", "operation_id", "status"],
+                "properties": {
+                  "approval_id": { "type": "string" },
+                  "operation_id": { "type": "string" },
+                  "status": { "type": "string", "enum": ["pending", "approved", "denied"] }
+                }
+              }
+            }
+          }
+        },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "schema_version": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

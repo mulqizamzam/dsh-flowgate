@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dsh-flowgate/schemas/DependencyEdge.schema.json",
+  "title": "DependencyEdge",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "edge"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "kind", "policy"],
+      "properties": {
+        "from": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "to": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "kind": { "type": "string", "enum": ["input", "derived_from", "evidence_for", "validated_by", "ordering"] },
+        "policy": { "type": "string", "enum": ["invalidate", "stale", "needs_revalidation", "preserve"] },
+        "rationale": { "type": "string" },
+        "contract_ref": { "type": "string" }
+      }
+    }
+  }
+}

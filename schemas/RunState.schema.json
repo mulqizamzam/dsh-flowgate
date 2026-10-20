@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dsh-flowgate/schemas/RunState.schema.json",
+  "title": "RunState",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "workflow", "workflow_version", "schema_version", "stages", "artifacts", "evidence", "gates", "graph", "checkpoints", "status", "timestamps"],
+      "properties": {
+        "run_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "workflow": { "type": "string", "enum": ["feature", "bugfix", "investigation", "migration", "release"] },
+        "workflow_version": { "type": "integer", "minimum": 1 },
+        "schema_version": { "type": "integer", "minimum": 1 },
+        "stages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["skill", "required", "attempt", "status", "artifact_ref"],
+            "properties": {
+              "skill": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+              "required": { "type": "boolean" },
+              "attempt": { "type": "integer", "minimum": 1 },
+              "status": { "type": "string", "enum": ["pending", "ready", "running", "validating", "passed", "failed", "blocked", "error", "cancelled"] },
+              "artifact_ref": { "type": "string" }
+            }
+          }
+        },
+        "artifacts": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "gates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stage", "status", "checks"],
+            "properties": {
+              "stage": { "type": "string" },
+              "status": { "type": "string", "enum": ["pending", "passed", "failed", "blocked", "error"] },
+              "checks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "result"],
+                  "properties": {
+                    "id": { "type": "string" },
+                    "result": { "type": "string", "enum": ["passed", "failed", "error", "skipped"] }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "graph": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to", "kind", "policy"],
+            "properties": {
+              "from": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+              "to": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+              "kind": { "type": "string", "enum": ["input", "derived_from", "evidence_for", "validated_by", "ordering"] },
+              "policy": { "type": "string", "enum": ["invalidate", "stale", "needs_revalidation", "preserve"] },
+              "rationale": { "type": "string" },
+              "contract_ref": { "type": "string" }
+            }
+          }
+        },
+        "checkpoints": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "status": { "type": "string", "enum": ["created", "planned", "running", "paused", "completed", "failed", "blocked", "cancelled"] },
+        "timestamps": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["created", "last_updated"],
+          "properties": {
+            "created": { "type": "string", "format": "date-time" },
+            "last_updated": { "type": "string", "format": "date-time" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dsh-flowgate/schemas/Artifact.schema.json",
+  "title": "ArtifactRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "artifact"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "artifact_type", "schema_version", "producer_stage", "attempt_id", "status", "validation_summary", "content_ref", "fingerprint", "input_bindings", "timestamps"],
+      "properties": {
+        "artifact_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "artifact_type": { "type": "string", "enum": ["Intent", "Spec", "SlicePlan", "Proof", "Review", "Constraints", "Diagnosis", "Handoff"] },
+        "schema_version": { "type": "integer", "minimum": 1 },
+        "producer_stage": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "attempt_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "status": { "type": "string", "enum": ["missing", "present", "valid", "invalid"] },
+        "validation_summary": { "type": "object", "additionalProperties": false, "properties": { "checks_passed": { "type": "integer" }, "checks_failed": { "type": "integer" }, "last_validated": { "type": "string", "format": "date-time" } } },
+        "content_ref": { "type": "string", "pattern": "^[a-z0-9/_-]+\\.md$" },
+        "fingerprint": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "input_bindings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["ref", "version"],
+            "properties": {
+              "ref": { "type": "string" },
+              "version": { "type": "string" }
+            }
+          }
+        },
+        "timestamps": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["created", "last_validated"],
+          "properties": {
+            "created": { "type": "string", "format": "date-time" },
+            "last_validated": { "type": "string", "format": "date-time" }
+          }
+        }
+      }
+    }
+  }
+}

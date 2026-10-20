@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dsh-flowgate/schemas/Report.schema.json",
+  "title": "RunReport",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "workflow", "workflow_version", "contract_version", "engine_version", "routing", "stages", "checks", "invalidations", "checkpoint", "errors", "enforcement_levels", "completion", "limitations"],
+      "properties": {
+        "run_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "workflow": { "type": "string", "enum": ["feature", "bugfix", "investigation", "migration", "release"] },
+        "workflow_version": { "type": "integer", "minimum": 1 },
+        "contract_version": { "type": "integer", "minimum": 1 },
+        "engine_version": { "type": "string" },
+        "routing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["selected_workflow", "scores", "tie_break"],
+          "properties": {
+            "selected_workflow": { "type": "string" },
+            "scores": { "type": "object", "additionalProperties": { "type": "integer" } },
+            "tie_break": { "type": "string" }
+          }
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["skill", "required", "status", "artifact_status", "evidence_status", "gate_status", "review_status"],
+            "properties": {
+              "skill": { "type": "string" },
+              "required": { "type": "boolean" },
+              "status": { "type": "string", "enum": ["pending", "ready", "running", "validating", "passed", "failed", "blocked", "error", "cancelled"] },
+              "artifact_status": { "type": "string", "enum": ["missing", "present", "valid", "invalid"] },
+              "evidence_status": { "type": "string", "enum": ["missing", "current", "stale", "needs_revalidation", "invalid"] },
+              "gate_status": { "type": "string", "enum": ["pending", "passed", "failed", "blocked", "error"] },
+              "review_status": { "type": "string", "enum": ["pending", "approved", "changes_requested", "not_required"] }
+            }
+          }
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stage", "check_id", "type", "result", "details"],
+            "properties": {
+              "stage": { "type": "string" },
+              "check_id": { "type": "string" },
+              "type": { "type": "string" },
+              "result": { "type": "string", "enum": ["passed", "failed", "error", "skipped"] },
+              "details": { "type": "object", "additionalProperties": true }
+            }
+          }
+        },
+        "invalidations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["changed_dependency", "affected_artifacts", "affected_evidence", "reason"],
+            "properties": {
+              "changed_dependency": { "type": "string" },
+              "affected_artifacts": { "type": "array", "items": { "type": "string" } },
+              "affected_evidence": { "type": "array", "items": { "type": "string" } },
+              "reason": { "type": "string" }
+            }
+          }
+        },
+        "checkpoint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["checkpoint_id", "valid", "selection_reason"],
+          "properties": {
+            "checkpoint_id": { "type": "string" },
+            "valid": { "type": "boolean" },
+            "selection_reason": { "type": "string" }
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message", "stage"],
+            "properties": {
+              "code": { "type": "string" },
+              "message": { "type": "string" },
+              "stage": { "type": "string" },
+              "remediation_hint": { "type": "string" }
+            }
+          }
+        },
+        "enforcement_levels": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["declared", "validated", "enforced"],
+          "properties": {
+            "declared": { "type": "array", "items": { "type": "string" } },
+            "validated": { "type": "array", "items": { "type": "string" } },
+            "enforced": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "completion": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["decision", "reason"],
+          "properties": {
+            "decision": { "type": "string", "enum": ["completed", "failed", "blocked", "cancelled"] },
+            "reason": { "type": "string" }
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}
