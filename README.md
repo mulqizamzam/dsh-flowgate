@@ -277,8 +277,13 @@ missing the dependency or bundle entry, 14 catalog count mismatch.
   a sentence is true. `prove` and `recover` mitigate this by accepting only
   observed test/command evidence.
 - The nine artifact schemas are opinionated and there is no per-project override.
-- Invocation is one composed message per run; the multi-turn callback path relies
-  on the agent emitting stage output that the session observer can record.
+- Invocation is one composed message per run, and the session observer records at
+  most one stage artifact per assistant message. Flowgate never steers the agent
+  again to ask for the next stage, so a run whose agent emits every artifact in
+  one final message stops after the first stage: the later artifacts stay
+  unrecorded and their gates stay `pending`. A live run on 2026-10-21 behaved
+  exactly that way (`intent=passed`, `decide=pending`). Multi-stage runs do
+  complete when the agent emits each artifact in its own message.
 - Artifact and evidence content is capped (64 KiB per artifact record, 2 KiB per
   evidence excerpt) so state stays bounded.
 

@@ -132,6 +132,65 @@ plugin exists to prevent, and nine copies of the same list to keep in sync);
 publishing the whole contract in the stage block (the dry run already prints it
 in full, and the message has a 40 KiB budget to respect).
 
+## Live validation (2026-10-21)
+
+The decisions above were validated against the running host, not only against the
+test suite.
+
+- The running host served the new plugin code from the linked workspace with no
+  restart: `/decide` was present in the host command registry, and
+  `/flowgate --dry-run "add a rate limiter"` listed `2. decide (optional) —
+  Artifact: Decision`, with the contract's two evidence records, in a six-stage
+  feature plan.
+- The composed message that actually reached the agent carried the new line:
+
+  ```text
+  STAGE 2 of 6: decide
+  Purpose: Record the chosen approach, the alternatives it beat, and what would reopen it.
+  Produces: Decision
+  Required: no
+  Required evidence: options_recorded (declared_evidence), rationale_recorded (declared_evidence)
+  ```
+
+  The `intent` stage, whose only evidence is synthesized by the controller,
+  carried `Required evidence: none`.
+- `/decide "untuk rate limiter di API publik: token bucket in-memory atau
+  Redis?"` made a real agent produce a Decision artifact. Condensed, it read:
+
+  ```text
+  DECISION
+  CONTEXT: the operator asked one narrow question — token bucket in-memory, or Redis? — and it forces a choice because the store decides what the plugin owes the operator at runtime.
+  OPTIONS: In-memory token bucket inside the plugin process, keyed per session id plus a second global per-instance bucket …
+  CHOSEN: In-memory token bucket inside the plugin process, keyed per session id plus a global per-instance bucket, covering only the run-creating and run-advancing paths …
+  RATIONALE: It wins on the property that matters for this threat model — bounding a runaway agent loop on one machine needs no shared state …
+  REJECTED: Redis-backed token bucket — it buys cross-process sharing this threat model never needs …
+  CONSEQUENCES: The plugin gains no runtime dependency, no external service requirement and no network I/O on the command path. …
+  REVISED_BY: The decision reopens if the operator needs one budget shared by two concurrently running host processes …
+
+  ## EVIDENCE
+  FACTS: The plugin's runtime dependency set is exactly two packages …
+  EVIDENCE_RECORD: {"id": "options_recorded", "type": "declared_evidence", "result": "declared"}
+  EVIDENCE_RECORD: {"id": "rationale_recorded", "type": "declared_evidence", "result": "declared"}
+  ```
+
+- Feeding that artifact back through the plugin's own controller recorded it and
+  passed the gate: `stage: decide`, `gate: passed`, `reasons: []`, artifact
+  `valid / current`, and both evidence records `current`. The agent had read the
+  evidence ids from the plugin's contracts file in its workspace, not from the
+  skill body, which no longer names them.
+
+### Finding from the same validation
+
+A live `/flowgate` run stopped after its first stage: `intent=passed`,
+`decide=pending`, with the later artifacts never recorded. The cause is not the
+new stage. The controller records one stage artifact per assistant message and
+Flowgate never steers the agent again to ask for the next stage, so an agent
+that emits every artifact in one final message leaves the remaining gates
+`pending` forever. Runs in the same state directory that did complete
+(`intent`, `recover`, `handoff` all passed) were runs whose agent emitted each
+artifact in its own message. This limit is now stated in the README's known
+limitations; changing the recording model is a separate change.
+
 ## Consequences
 
 - Positive: the reasoning behind a design becomes a gated artifact with
@@ -161,6 +220,11 @@ in full, and the message has a 40 KiB budget to respect).
 
 ## Follow-up
 
+- Record every stage artifact an assistant message contains, instead of only the
+  first one, so a run whose agent emits all artifacts at once is not left with
+  `pending` gates. The live validation above is the evidence for this item; the
+  change touches `lib/controller.js` and the observer, and deserves its own
+  change with a test that fails on the current recording model.
 - If `release` ever needs a second decision point (for example the rollback
   path chosen after a failed canary), the `decide` stage can be repeated only
   after the contract model allows one stage to produce two artifacts.
