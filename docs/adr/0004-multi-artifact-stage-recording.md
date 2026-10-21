@@ -9,24 +9,29 @@
 
 ## Context
 
-ADR 0002 validated the `decide` skill against the running host and found a
-limit in the recording model, not in the skill.
+ADR 0002 validated the `decide` skill against the running host and, while
+reading the recording path, exposed a limit in it.
 
-A live `/flowgate` run stopped after its first stage: `intent=passed`,
-`decide=pending`, with the later artifacts never recorded. The cause:
+The controller records one stage artifact per assistant message: it matches the
+first pending stage whose artifact marker appears in the message, records it,
+and ignores the rest of the message.
 
-- The session observer hands one assistant message to the controller.
-- `applyStageOutput` matched the first pending stage whose artifact marker
-  appeared in that message, recorded it, and returned. Every other artifact in
-  the same message was ignored.
-- Flowgate never steers the agent again to ask for the next stage, so a message
-  that carried every artifact at once advanced the run by exactly one stage.
+The live run showed what that limit does and does not do. The run recorded its
+`Intent` artifact at 02:02:59Z and its `Decision` artifact at 02:12:29Z — nine
+and a half minutes apart, in two separate assistant messages, because the agent
+kept working between them. The run advanced one stage at a time for as long as
+the agent took, and the pause seen from the outside (`intent=passed`,
+`decide=pending`) was the agent's turn, not the recorder. A run that stalls
+this way is waiting for the agent.
 
-The agent's shape is the trigger: an agent that writes its whole answer — prose
-plus every artifact — at the end of one turn is the common shape, and under the
-old model it could only ever advance one stage.
+What the limit does break is the other message shape, and that shape is
+common: an agent that writes its whole answer — prose plus every artifact — in
+one final message advances the run by exactly one stage, and every artifact
+after the first in that message is ignored. The stage that follows then waits
+for a message that never comes, because Flowgate does not steer the agent for
+the next stage.
 
-Two things blocked the obvious fix.
+Two things blocked the fix.
 
 1. **The parser read across artifacts.** `parseStageOutput` searched for the
    first `## EVIDENCE` heading after the artifact marker, with no upper bound.
@@ -73,7 +78,7 @@ being valid).
 ## Consequences
 
 - Positive: an agent that emits every artifact at once advances the run by
-  every stage it completed, which is the shape the live host produced.
+  every stage it completed, instead of exactly one.
 - Positive: the refusal path stays explicit. An artifact whose prerequisite did
   not pass is reported, not recorded early.
 - Positive: the tests that fail under the old model are the regression tests

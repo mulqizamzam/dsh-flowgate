@@ -181,15 +181,23 @@ test suite.
 
 ### Finding from the same validation
 
-A live `/flowgate` run stopped after its first stage: `intent=passed`,
-`decide=pending`, with the later artifacts never recorded. The cause is not the
-new stage. The controller records one stage artifact per assistant message and
-Flowgate never steers the agent again to ask for the next stage, so an agent
-that emits every artifact in one final message leaves the remaining gates
-`pending` forever. Runs in the same state directory that did complete
-(`intent`, `recover`, `handoff` all passed) were runs whose agent emitted each
-artifact in its own message. This limit is now stated in the README's known
-limitations; changing the recording model is a separate change.
+The same run showed what the recording model does and does not do. The
+controller records one stage artifact per assistant message: it matches the
+first pending stage whose artifact marker appears in the message, records it,
+and ignores the rest.
+
+The live run recorded its `Intent` artifact at 02:02:59Z and its `Decision`
+artifact at 02:12:29Z — nine and a half minutes apart, in two separate
+assistant messages, because the agent kept working between them. The run
+advanced one stage at a time for as long as the agent took, and the pause seen
+from the outside (`intent=passed`, `decide=pending`) was the agent's turn, not
+the recorder.
+
+What the limit does break is the other message shape: an agent that writes its
+whole answer — prose plus every artifact — in one final message advances the
+run by exactly one stage, and the rest of that message is ignored. ADR 0004
+records the change that removes that limit, with a test that fails on the
+previous model.
 
 ## Consequences
 

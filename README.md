@@ -296,9 +296,10 @@ missing the dependency or bundle entry, 14 catalog count mismatch.
 - Invocation is one composed message per run. One assistant message may carry
   several stage artifacts: they are recorded in stage order, and the walk stops
   at the first stage that does not pass. Flowgate never steers the agent again to
-  ask for the next stage, so an agent that emits only the first artifact and then
-  stops leaves the later gates `pending`. That happened in a live run on
-  2026-10-21, before this recording model existed.
+  ask for the next stage, so a run waits for the agent between stages: in a live
+  run on 2026-10-21 the `Decision` artifact arrived nine and a half minutes
+  after the `Intent` one, because the agent kept working in between, and the
+  run showed `decide=pending` until it did.
 - Artifact and evidence content is capped (64 KiB per artifact record, 2 KiB per
   evidence excerpt) so state stays bounded.
 
