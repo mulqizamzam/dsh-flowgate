@@ -142,6 +142,32 @@ export function decisionText({ fields = {}, records = [], evidence = {} } = {}) 
   ].join('\n')
 }
 
+export function researchText({ fields = {}, records = [], evidence = {} } = {}) {
+  const values = {
+    QUESTION: 'does the upstream session cookie format survive a signed deployment',
+    SOURCES: 'the upstream session guide — the serializer drops undeclared fields before signing',
+    FINDINGS: 'a signed cookie keeps only the fields the serializer declares',
+    CONTRADICTIONS: 'none',
+    GAPS: 'the behavior of the third-party serializer was not checked',
+    CONFIDENCE: 'medium',
+    IMPACT: 'the spec must declare the session fields it signs',
+    ...fields,
+  }
+  return [
+    'RESEARCH',
+    `QUESTION: ${values.QUESTION}`,
+    `SOURCES: ${values.SOURCES}`,
+    `FINDINGS: ${values.FINDINGS}`,
+    `CONTRADICTIONS: ${values.CONTRADICTIONS}`,
+    `GAPS: ${values.GAPS}`,
+    `CONFIDENCE: ${values.CONFIDENCE}`,
+    `IMPACT: ${values.IMPACT}`,
+    ...evidenceRecordLines(records),
+    '',
+    evidenceBlock(evidence),
+  ].join('\n')
+}
+
 export function specText({ fields = {}, records = [], evidence = {} } = {}) {
   const values = {
     INTERFACES: 'POST /login returns 200 with a session cookie',
@@ -274,6 +300,15 @@ export function recordDecision(controller, run, { records } = {}) {
     records: records ?? [
       { id: 'options_recorded', type: 'declared_evidence', result: 'declared' },
       { id: 'rationale_recorded', type: 'declared_evidence', result: 'declared' },
+    ],
+  }))
+}
+
+export function recordResearch(controller, run, { records } = {}) {
+  return controller.recordStageOutput(run.run_id, researchText({
+    records: records ?? [
+      { id: 'sources_fetched', type: 'declared_evidence', result: 'declared' },
+      { id: 'claims_graded', type: 'declared_evidence', result: 'declared' },
     ],
   }))
 }

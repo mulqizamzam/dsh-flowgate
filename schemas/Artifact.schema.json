@@ -13,7 +13,7 @@
       "required": ["artifact_id", "artifact_type", "schema_version", "producer_stage", "attempt_id", "status", "validation_summary", "content_ref", "fingerprint", "input_bindings", "timestamps"],
       "properties": {
         "artifact_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
-        "artifact_type": { "type": "string", "enum": ["Intent", "Spec", "SlicePlan", "Proof", "Review", "Constraints", "Diagnosis", "Handoff"] },
+        "artifact_type": { "type": "string", "enum": ["Intent", "Decision", "Research", "Spec", "SlicePlan", "Proof", "Review", "Constraints", "Diagnosis", "Handoff"] },
         "schema_version": { "type": "integer", "minimum": 1 },
         "producer_stage": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
         "attempt_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },

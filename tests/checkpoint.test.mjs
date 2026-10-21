@@ -18,7 +18,7 @@ test('a passed stage writes a versioned checkpoint that names what it covers', a
   assert.equal(checkpoint.run_id, run.run_id)
   assert.equal(checkpoint.workflow.name, 'investigation')
   assert.equal(checkpoint.gates.find(entry => entry.stage === 'intent').status, 'passed')
-  assert.deepEqual(checkpoint.pending_stages, ['recover', 'handoff'])
+  assert.deepEqual(checkpoint.pending_stages, ['research', 'recover', 'handoff'])
   assert.equal(checkpoint.artifacts.length, 1)
   assert.equal(checkpoint.artifacts[0].artifact_type, 'Intent')
   assert.equal(checkpoint.evidence.length >= 1, true)
@@ -99,11 +99,13 @@ test('resume from the last valid checkpoint continues with the remaining stages 
   recordIntent(controller, run)
   const plan = controller.resume(run.run_id)
   assert.equal(plan.checkpoint_id, 'cp-001')
-  assert.deepEqual(plan.stages, ['recover', 'handoff'])
+  assert.deepEqual(plan.stages, ['research', 'recover', 'handoff'])
   assert.deepEqual(plan.rejected, [])
   const stored = controller.status(run.run_id)
   assert.equal(stored.stages.find(stage => stage.skill === 'recover').attempts.at(-1).state, 'running')
   assert.equal(stored.gates.find(entry => entry.stage === 'recover').status, 'pending')
+  const research = stored.stages.find(stage => stage.skill === 'research')
+  assert.equal(research.attempts.every(attempt => attempt.state !== 'running'), true, 'a resume must not hand the attempt to an optional stage')
 })
 
 test('a checkpoint does not pin stale evidence as current', async () => {

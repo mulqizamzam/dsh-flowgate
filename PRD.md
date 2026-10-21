@@ -46,6 +46,9 @@ The product's governing rule is:
 - Retain the existing **9 skills**, **5 workflows**, and **10 slash commands**.
   ADR 0002 added the `decide` skill, the `Decision` artifact, and the `/decide`
   alias to the envelope this section originally fixed at 8 / 5 / 9.
+- ADR 0003 adds the `research` skill, the `Research` artifact, and the `/research`
+  alias, taking the envelope to **10 skills**, **5 workflows**, and **11 slash
+  commands**.
 - Introduce formal Stage Contracts and a dependency graph.
 - Introduce persistent, explicit run state and deterministic transition rules.
 - Validate stage outputs, required evidence, and gate criteria before a stage may be recorded as passed.
@@ -160,6 +163,7 @@ An operator asks Flowgate to fix a login regression. Flowgate selects `bugfix`, 
 |---|---|---|---|---|
 | `intent` | `Intent` | `frame` | `low` | State what the operator wants in falsifiable terms. |
 | `decide` | `Decision` | `decide` | `low` | Record the chosen approach, the alternatives it beat, and what would reopen it. Added by ADR 0002. |
+| `research` | `Research` | `research` | `low` | Record evidence gathered from outside this repository: the question, the sources, the findings, and what remains unknown. Added by ADR 0003. |
 | `spec` | `Spec` | `specify` | `low` | Define interfaces, boundaries, and a test strategy. |
 | `slice` | `SlicePlan` | `plan` | `low` | Break the work into independently provable slices. |
 | `prove` | `Proof` | `prove` | `medium` | Define proof before the change and record reproducible before/after evidence. |
@@ -172,10 +176,10 @@ An operator asks Flowgate to fix a login regression. Flowgate selects `bugfix`, 
 
 | Workflow | Keywords | Priority | Ordered stages (`*` means required) |
 |---|---|---:|---|
-| `feature` | `add`, `implement`, `build`, `create`, `feature` | 60 | `intent* → decide → spec* → slice* → prove* → review` |
+| `feature` | `add`, `implement`, `build`, `create`, `feature` | 60 | `intent* → research → decide → spec* → slice* → prove* → review` |
 | `bugfix` | `fix`, `broken`, `regression`, `crash`, `bug` | 75 | `recover* → prove* → review*` |
-| `investigation` | `investigate`, `why`, `diagnose`, `failing`, `understand` | 50 | `intent* → recover* → handoff*` |
-| `migration` | `migrate`, `upgrade`, `deprecate`, `port`, `refactor` | 70 | `intent* → decide → spec* → slice* → prove* → review → handoff*` |
+| `investigation` | `investigate`, `why`, `diagnose`, `failing`, `understand` | 50 | `intent* → research → recover* → handoff*` |
+| `migration` | `migrate`, `upgrade`, `deprecate`, `port`, `refactor` | 70 | `intent* → research → decide → spec* → slice* → prove* → review → handoff*` |
 | `release` | `release`, `deploy`, `ship`, `production`, `launch` | 80 | `intent* → constrain* → decide → prove* → review* → handoff*` |
 
 The optional `decide` stage was added by ADR 0002. It is present in `feature`,
@@ -184,6 +188,14 @@ chooses between approaches rather than reacting to an event. `release` also
 gained a required `intent` stage in the same change, because the `decide`
 contract requires a valid `Intent` artifact and the release workflow produced
 none.
+
+The optional `research` stage was added by ADR 0003. It is present in `feature`,
+`investigation`, and `migration`, because those are the workflows that start from
+a question this repository cannot answer on its own. `bugfix` and `release` are
+untouched: a bugfix reacts to an event that already happened, and a release
+concerns the artifact being shipped rather than the shape of the world outside
+the repository. The `research` contract requires a valid `Intent` artifact, so a
+workflow without an `intent` stage cannot host it.
 
 Workflow selection MUST remain deterministic:
 
@@ -197,18 +209,19 @@ For `bugfix`, one `prove` stage produces one `Proof` artifact containing `FAILIN
 
 ### 6.3 Preserved commands
 
-Keep exactly these ten command registrations unless the host's command API makes an equivalent registration impossible and an ADR approves a replacement:
+Keep exactly these eleven command registrations unless the host's command API makes an equivalent registration impossible and an ADR approves a replacement:
 
-`/intent`, `/decide`, `/spec`, `/slice`, `/prove`, `/review`, `/constrain`, `/recover`, `/handoff`, `/flowgate`.
+`/intent`, `/decide`, `/research`, `/spec`, `/slice`, `/prove`, `/review`, `/constrain`, `/recover`, `/handoff`, `/flowgate`.
 
-The nine aliases resolve one skill and pass the sanitized request without mutating the skill body. `/flowgate` is the orchestration entry point. v2 should extend `/flowgate` flags instead of proliferating top-level commands.
+The ten aliases resolve one skill and pass the sanitized request without mutating the skill body. `/flowgate` is the orchestration entry point. v2 should extend `/flowgate` flags instead of proliferating top-level commands.
 
-`/decide` was added by ADR 0002, which supersedes the earlier nine-registration rule for that one alias. The rule against new orchestration surfaces is unchanged: `/decide` loads one stage skill and orchestrates nothing.
+`/decide` was added by ADR 0002 and `/research` by ADR 0003, which supersede the earlier nine-registration rule for those two aliases. The rule against new orchestration surfaces is unchanged: `/decide` and `/research` load one stage skill and orchestrate nothing.
 
 ### 6.4 Preserved artifact fields
 
 - **Intent:** `GOAL`, `NON_GOALS`, `SUCCESS_CRITERIA`, `UNKNOWNS`.
 - **Decision:** `CONTEXT`, `OPTIONS`, `CHOSEN`, `RATIONALE`, `REJECTED`, `CONSEQUENCES`, `REVISED_BY`.
+- **Research:** `QUESTION`, `SOURCES`, `FINDINGS`, `CONTRADICTIONS`, `GAPS`, `CONFIDENCE`, `IMPACT`.
 - **Spec:** `INTERFACES`, `BOUNDARIES`, `TEST_STRATEGY`, `ACCEPTANCE`.
 - **SlicePlan:** ordered slices with `SCOPE`, `PROOF`, `ROLLBACK`.
 - **Proof:** `WHAT_IS_PROVEN`, `HOW`, `FAILING_BEFORE`, `PASSING_AFTER`, `EDGE_CASES`.

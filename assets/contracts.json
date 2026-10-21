@@ -5,6 +5,7 @@
     "artifacts": [
       "Intent",
       "Decision",
+      "Research",
       "Spec",
       "SlicePlan",
       "Proof",
@@ -14,7 +15,7 @@
       "Handoff",
       "user-request"
     ],
-    "categories": ["frame", "decide", "specify", "plan", "prove", "review", "guard", "recover", "close"],
+    "categories": ["frame", "decide", "research", "specify", "plan", "prove", "review", "guard", "recover", "close"],
     "risk_levels": ["low", "medium", "high"]
   },
   "evidence_types": [
@@ -74,7 +75,7 @@
     "decide": {
       "contract_version": 2,
       "produces": ["Decision"],
-      "consumes": ["user-request", "Intent"],
+      "consumes": ["user-request", "Intent", "Research"],
       "requires": ["Intent"],
       "requires_any": [],
       "categories": ["decide"],
@@ -114,10 +115,53 @@
       "recovery": { "checkpoint_eligible": true, "require_current_evidence": true },
       "side_effects": { "class": "read_only", "retry_policy": "safe_idempotent" }
     },
+    "research": {
+      "contract_version": 2,
+      "produces": ["Research"],
+      "consumes": ["user-request", "Intent"],
+      "requires": ["Intent"],
+      "requires_any": [],
+      "categories": ["research"],
+      "risk_level": "low",
+      "evidence": [
+        {
+          "id": "sources_fetched",
+          "type": "declared_evidence",
+          "supports": ["SOURCES", "FINDINGS"],
+          "bind_to_inputs": ["Intent"],
+          "accepted_provenance": ["agent_statement", "observed_command", "observed_tool"],
+          "freshness_policy": "invalidate_on_dependency_change"
+        },
+        {
+          "id": "claims_graded",
+          "type": "declared_evidence",
+          "supports": ["CONTRADICTIONS", "GAPS", "CONFIDENCE", "IMPACT"],
+          "bind_to_inputs": ["Intent"],
+          "accepted_provenance": ["agent_statement", "observed_command", "observed_tool"],
+          "freshness_policy": "invalidate_on_dependency_change"
+        }
+      ],
+      "checks": [
+        { "id": "research_fields", "type": "artifact_fields" },
+        { "id": "research_schema", "type": "artifact_schema" },
+        { "id": "research_evidence_block", "type": "evidence_block" },
+        { "id": "research_evidence_valid", "type": "evidence_validation" },
+        { "id": "research_evidence_current", "type": "evidence_current" }
+      ],
+      "dependencies": { "unknown_impact_policy": "needs_revalidation" },
+      "completion": {
+        "required_checks": "all",
+        "missing_prerequisite": "blocked",
+        "unmet_criterion": "failed",
+        "checker_error": "error"
+      },
+      "recovery": { "checkpoint_eligible": true, "require_current_evidence": true },
+      "side_effects": { "class": "read_only", "retry_policy": "safe_idempotent" }
+    },
     "spec": {
       "contract_version": 2,
       "produces": ["Spec"],
-      "consumes": ["Intent"],
+      "consumes": ["Intent", "Research"],
       "requires": ["Intent"],
       "requires_any": [],
       "categories": ["specify"],
@@ -343,7 +387,7 @@
     "handoff": {
       "contract_version": 2,
       "produces": ["Handoff"],
-      "consumes": ["user-request", "Intent", "Spec", "SlicePlan", "Proof", "Review", "Constraints", "Diagnosis", "Decision"],
+      "consumes": ["user-request", "Intent", "Spec", "SlicePlan", "Proof", "Review", "Constraints", "Diagnosis", "Decision", "Research"],
       "requires": ["user-request"],
       "requires_any": ["Diagnosis", "Review", "Proof"],
       "categories": ["close"],

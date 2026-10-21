@@ -91,7 +91,7 @@ test('the live host verifies command registration and skill resolution', async (
   assert.equal(capabilitySummary(matrix), '8 verified, 2 unsupported, 0 unknown')
   assert.deepEqual(
     ctx.commands.list(agent).map(descriptor => descriptor.name).sort(),
-    ['constrain', 'decide', 'flowgate', 'handoff', 'intent', 'prove', 'recover', 'review', 'slice', 'spec'],
+    ['constrain', 'decide', 'flowgate', 'handoff', 'intent', 'prove', 'recover', 'research', 'review', 'slice', 'spec'],
   )
 })
 
@@ -100,10 +100,10 @@ test('the live host path resolves every skill the composed message needs', async
   const result = await runCommand(ctx, agent, '/flowgate investigate the failing login')
   assert.equal(result.kind, 'success', result.text)
   const message = steered[0].content[0].text
-  for (const skill of ['intent', 'recover', 'handoff']) {
+  for (const skill of ['intent', 'research', 'recover', 'handoff']) {
     assert.equal(message.includes(`<skill_content name="${skill}">`), true, `${skill}: live body must be embedded`)
   }
-  for (const skill of ['intent', 'recover', 'handoff']) {
+  for (const skill of ['intent', 'research', 'recover', 'handoff']) {
     const definition = await ctx.skills.get(skill)
     assert.notEqual(definition, undefined, `${skill}: must resolve through the live registry`)
     assert.equal(definition.invocation.userInvocable, true)
@@ -206,7 +206,7 @@ test('a plugin load against the live host registers and disposes cleanly', async
   const agent = { id: session.id, session, steer: () => {} }
   await ctx.plugin(Object.assign(inner => { createScope(inner, agent) }, { inject: ['commands'] }))
   const fiber = await ctx.plugin(flowgate, { stateDir: tempStateDir('flowgate-dispose-') })
-  assert.equal(ctx.commands.list(agent).length, 10)
+  assert.equal(ctx.commands.list(agent).length, 11)
   await fiber.dispose()
   assert.deepEqual(ctx.commands.list(agent), [])
 })

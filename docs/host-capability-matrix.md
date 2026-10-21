@@ -56,7 +56,7 @@ The supported live path is a real cordis `Context` with:
 2. An agent object that records `steer` calls.
 3. `flowgate` mounted with an explicit `stateDir`.
 
-On that path the plugin registers ten commands, resolves real skill bodies,
+On that path the plugin registers eleven commands, resolves real skill bodies,
 records real `session/event` tool results as observations, and accepts an
 assistant message containing an artifact as stage output. All of it is asserted in
 `tests/live-host-verification.test.mjs`, which is the gate that proves the

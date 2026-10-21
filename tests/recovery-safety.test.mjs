@@ -94,7 +94,7 @@ test('manual approval is required before retrying a manual_approval_required sta
 
   const plan = controller.resume(stored.run_id)
   assert.equal(plan.checkpoint_id, 'cp-001')
-  assert.deepEqual(plan.stages, ['recover', 'handoff'])
+  assert.deepEqual(plan.stages, ['research', 'recover', 'handoff'])
   const after = controller.status(stored.run_id)
   assert.equal(after.approvals.length, 1)
   assert.equal(after.approvals[0].stage, 'recover')
@@ -108,7 +108,7 @@ test('a safe_idempotent stage is resumed without an approval', async () => {
   const patched = patchPolicy(stack.contracts, 'recover', 'safe_idempotent')
   const controller = controllerWith(stack, patched)
   const plan = controller.resume(stored.run_id)
-  assert.deepEqual(plan.stages, ['recover', 'handoff'])
+  assert.deepEqual(plan.stages, ['research', 'recover', 'handoff'])
   const after = controller.status(stored.run_id)
   assert.equal(after.approvals.length, 0)
 })

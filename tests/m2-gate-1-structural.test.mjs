@@ -16,8 +16,8 @@ const MAX_WORKFLOW_SIZE = 32 * 1024 // 32 KiB
 test('Gate 1: Structural validation - Skills', async (t) => {
   const skillDirs = readdirSync(SKILLS_DIR).filter(d => statSync(join(SKILLS_DIR, d)).isDirectory())
   
-  await t.test('has exactly 9 skills', () => {
-    assert.equal(skillDirs.length, 9)
+  await t.test('has exactly 10 skills', () => {
+    assert.equal(skillDirs.length, 10)
   })
 
   await t.test('each skill has valid SKILL.md with required frontmatter', () => {
@@ -48,6 +48,7 @@ test('Gate 1: Structural validation - Skills', async (t) => {
     const expectedArtifacts = {
       intent: 'Intent',
       decide: 'Decision',
+      research: 'Research',
       spec: 'Spec',
       slice: 'SlicePlan',
       prove: 'Proof',
@@ -117,10 +118,10 @@ test('Gate 1: Structural validation - Workflows', async (t) => {
 
   await t.test('stage order matches PRD §6.2', () => {
     const expectedStages = {
-      'feature.json': ['intent', 'decide', 'spec', 'slice', 'prove', 'review'],
+      'feature.json': ['intent', 'research', 'decide', 'spec', 'slice', 'prove', 'review'],
       'bugfix.json': ['recover', 'prove', 'review'],
-      'investigation.json': ['intent', 'recover', 'handoff'],
-      'migration.json': ['intent', 'decide', 'spec', 'slice', 'prove', 'review', 'handoff'],
+      'investigation.json': ['intent', 'research', 'recover', 'handoff'],
+      'migration.json': ['intent', 'research', 'decide', 'spec', 'slice', 'prove', 'review', 'handoff'],
       'release.json': ['intent', 'constrain', 'decide', 'prove', 'review', 'handoff']
     }
     for (const file of workflowFiles) {

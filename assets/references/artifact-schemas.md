@@ -28,6 +28,19 @@ CONSEQUENCES: <one thing the choice now commits to, per line>
 REVISED_BY: <the condition that would reopen this decision, or none>
 ```
 
+## Research
+
+```text
+RESEARCH
+QUESTION: <the single question this research answers>
+SOURCES: <one source per line: its locator and what it established>
+FINDINGS: <one established claim per line>
+CONTRADICTIONS: <one disagreement between sources per line, or none>
+GAPS: <what remains unanswered per line, or none>
+CONFIDENCE: <high|medium|low, matched to the evidence>
+IMPACT: <what the findings change or confirm in this run>
+```
+
 ## Spec
 
 ```text

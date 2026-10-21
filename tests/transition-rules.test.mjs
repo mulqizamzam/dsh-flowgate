@@ -3,7 +3,7 @@ import { test } from 'node:test'
 import { FlowgateController } from '../lib/controller.js'
 import { addAttempt, evaluateStage } from '../lib/state.js'
 import { GATE_STATUSES } from '../lib/registry.js'
-import { handoffText, intentText, decisionText, recordDecision, recordDiagnosis, recordIntent, recordHandoff, startRun } from './helpers.mjs'
+import { handoffText, intentText, decisionText, researchText, recordDecision, recordDiagnosis, recordIntent, recordHandoff, recordResearch, startRun } from './helpers.mjs'
 
 function gate(run, skill) {
   return run.gates.find(entry => entry.stage === skill)
@@ -172,6 +172,68 @@ test('the decide stage is blocked until the intent it depends on is valid', asyn
   assert.equal(result.status, 'blocked')
   assert.deepEqual(result.reasons.map(reason => reason.code), ['STAGE_INPUT_MISSING'])
   assert.match(result.reasons[0].message, /required input artifact Intent/)
+})
+
+test('the research stage passes on a complete artifact with both declared evidence records', async () => {
+  const { controller, run } = await startRun({ request: 'add a rate limiter' })
+  recordIntent(controller, run)
+  const result = recordResearch(controller, run)
+  assert.equal(result.recorded, true)
+  assert.equal(result.stage, 'research')
+  assert.equal(result.gate, 'passed')
+  const stored = controller.status(run.run_id)
+  const artifact = stored.artifacts.find(entry => entry.artifact_type === 'Research')
+  assert.equal(artifact.status, 'valid')
+  assert.equal(artifact.producer.stage, 'research')
+  const evidence = stored.evidence.filter(entry => entry.producer.stage === 'research')
+  assert.deepEqual(evidence.map(entry => entry.contract_evidence_id).sort(), ['claims_graded', 'sources_fetched'])
+  assert.equal(evidence.every(entry => entry.status === 'current'), true)
+})
+
+test('the research stage fails when a required field is missing', async () => {
+  const { controller, run } = await startRun({ request: 'add a rate limiter' })
+  recordIntent(controller, run)
+  const result = controller.recordStageOutput(run.run_id, researchText({ fields: { SOURCES: '' } }))
+  assert.equal(result.gate, 'failed')
+  assert.deepEqual(result.reasons.map(reason => reason.code), ['ARTIFACT_SCHEMA_INVALID'])
+})
+
+test('the research stage is blocked until both evidence records are declared', async () => {
+  const { controller, run } = await startRun({ request: 'add a rate limiter' })
+  recordIntent(controller, run)
+  const result = controller.recordStageOutput(run.run_id, researchText({
+    records: [{ id: 'sources_fetched', type: 'declared_evidence', result: 'declared' }],
+  }))
+  assert.equal(result.gate, 'blocked')
+  assert.deepEqual(result.reasons.map(reason => reason.code), ['EVIDENCE_MISSING'])
+  assert.match(result.reasons[0].message, /claims_graded/)
+})
+
+test('the research stage is blocked until the intent it depends on is valid', async () => {
+  const { controller, run, contracts } = await startRun({ request: 'add a rate limiter' })
+  const stored = controller.load(run.run_id)
+  addAttempt(stored, 'research', { attemptId: 'att-902', now: '2026-01-01T00:00:00.000Z' })
+  const result = evaluateStage(stored, 'research', { contracts, now: '2026-01-01T00:00:00.000Z' })
+  assert.equal(result.status, 'blocked')
+  assert.deepEqual(result.reasons.map(reason => reason.code), ['STAGE_INPUT_MISSING'])
+  assert.match(result.reasons[0].message, /required input artifact Intent/)
+})
+
+test('a changed intent marks the research evidence stale', async () => {
+  const { controller, run } = await startRun({ request: 'add a rate limiter' })
+  recordIntent(controller, run)
+  recordResearch(controller, run)
+  const intent = controller.status(run.run_id).artifacts.find(entry => entry.artifact_type === 'Intent')
+  const decision = controller.applyChange(run.run_id, {
+    changed: `artifact:intent:${intent.artifact_id}`,
+    reason: 'the intent was rewritten',
+  })
+  assert.equal(decision.fingerprint_changed, true)
+  const stored = controller.status(run.run_id)
+  const research = stored.evidence.filter(entry => entry.producer.stage === 'research')
+  assert.equal(research.length, 2)
+  assert.ok(research.every(entry => entry.status !== 'current'), 'research evidence must not stay current after the intent changed')
+  assert.equal(stored.gates.find(entry => entry.stage === 'research').status, 'blocked')
 })
 
 test('an attempt records the gate outcome it produced', async () => {

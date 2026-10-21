@@ -35,6 +35,7 @@ A host restart activates the commands. State is written on the first run; see
 | --- | --- |
 | `/intent` | Load the intent skill. |
 | `/decide` | Load the decide skill. |
+| `/research` | Load the research skill. |
 | `/spec` | Load the spec skill. |
 | `/slice` | Load the slice skill. |
 | `/prove` | Load the prove skill. |
@@ -62,15 +63,21 @@ the request.
 
 | Workflow | Priority | Keywords | Stages (`*` = required) |
 | --- | ---: | --- | --- |
-| feature | 60 | add, implement, build, create, feature | intent* → decide → spec* → slice* → prove* → review |
+| feature | 60 | add, implement, build, create, feature | intent* → research → decide → spec* → slice* → prove* → review |
 | bugfix | 75 | fix, broken, regression, crash, bug | recover* → prove* → review* |
-| investigation | 50 | investigate, why, diagnose, failing, understand | intent* → recover* → handoff* |
-| migration | 70 | migrate, upgrade, deprecate, port, refactor | intent* → decide → spec* → slice* → prove* → review → handoff* |
+| investigation | 50 | investigate, why, diagnose, failing, understand | intent* → research → recover* → handoff* |
+| migration | 70 | migrate, upgrade, deprecate, port, refactor | intent* → research → decide → spec* → slice* → prove* → review → handoff* |
 | release | 80 | release, deploy, ship, production, launch | intent* → constrain* → decide → prove* → review* → handoff* |
 
 The `decide` stage is optional: it is recorded when more than one approach is
 viable and skipped when only one survives. See
 [ADR 0002](docs/adr/0002-decide-stage-and-tenth-command.md).
+
+The `research` stage is optional too: it is recorded when the answer depends on
+evidence this repository cannot supply, and skipped when the codebase already
+answers the question. It is present in `feature`, `investigation`, and
+`migration`, the workflows where an unknown answer is the usual starting point.
+See [ADR 0003](docs/adr/0003-research-stage-and-eleventh-command.md).
 
 Routing is pure and deterministic: the request is tokenized on Unicode letter and
 number boundaries, each workflow counts the distinct keywords it contains, the
@@ -97,6 +104,7 @@ A contract is data (`assets/contracts.json`, validated against
 | --- | --- | --- | --- | --- |
 | intent | Intent | `request_recorded` (operator input, synthesized) | operator_input | read_only / safe_idempotent |
 | decide | Decision | `options_recorded` (declared), `rationale_recorded` (declared, or measured) | agent_statement, operator_input; agent_statement, operator_input, observed_command, observed_tool | read_only / safe_idempotent |
+| research | Research | `sources_fetched` (declared), `claims_graded` (declared) | agent_statement, observed_command, observed_tool | read_only / safe_idempotent |
 | spec | Spec | `acceptance_recorded` (artifact inspection) | observed_tool, agent_statement | read_only / safe_idempotent |
 | slice | SlicePlan | `slices_recorded` (declared) | agent_statement | read_only / safe_idempotent |
 | prove | Proof | `failing_before_observed`, `passing_after_observed` (test execution) | observed_command, observed_tool | local_write / safe_idempotent |
@@ -276,7 +284,7 @@ missing the dependency or bundle entry, 14 catalog count mismatch.
   checks reject missing fields and unobserved claims, but they cannot judge whether
   a sentence is true. `prove` and `recover` mitigate this by accepting only
   observed test/command evidence.
-- The nine artifact schemas are opinionated and there is no per-project override.
+- The ten artifact schemas are opinionated and there is no per-project override.
 - Invocation is one composed message per run, and the session observer records at
   most one stage artifact per assistant message. Flowgate never steers the agent
   again to ask for the next stage, so a run whose agent emits every artifact in
@@ -295,12 +303,12 @@ MIT. See [LICENSE](LICENSE).
 
 | Count | Value |
 | --- | --- |
-| Skills | 9 |
+| Skills | 10 |
 | Workflows | 5 |
-| Contracts | 9 |
-| Alias commands | 9 |
-| Commands | 10 |
-| Artifact types | 9 |
+| Contracts | 10 |
+| Alias commands | 10 |
+| Commands | 11 |
+| Artifact types | 10 |
 | Test gates | 18 |
 
 <!-- COUNTS:END -->

@@ -12,7 +12,7 @@ import { SKILLS_DIR, shippedSkills } from '../lib/catalog.js'
 import * as flowgate from '../lib/index.js'
 import { tempStateDir } from './helpers.mjs'
 
-const EXPECTED_COMMANDS = ['constrain', 'decide', 'flowgate', 'handoff', 'intent', 'prove', 'recover', 'review', 'slice', 'spec']
+const EXPECTED_COMMANDS = ['constrain', 'decide', 'flowgate', 'handoff', 'intent', 'prove', 'recover', 'research', 'review', 'slice', 'spec']
 const FOREIGN_OWNER = 'a foreign plugin owns this name'
 
 async function stack({ stateDir = tempStateDir(), withProvider = true } = {}) {
@@ -47,7 +47,7 @@ async function run(ctx, agent, line) {
   return execution.result
 }
 
-test('all ten commands register against the host registry', async () => {
+test('all eleven commands register against the host registry', async () => {
   const { ctx, agent } = await mount()
   const descriptors = ctx.commands.list(agent)
   assert.deepEqual(descriptors.map(descriptor => descriptor.name).sort(), EXPECTED_COMMANDS)
@@ -122,7 +122,7 @@ test('disposing the flowgate fiber removes every command it claimed', async () =
   assert.deepEqual(ctx.commands.list(agent).map(descriptor => descriptor.name), [])
 })
 
-test('reloading flowgate after a clean dispose registers all ten commands again', async () => {
+test('reloading flowgate after a clean dispose registers all eleven commands again', async () => {
   const { ctx, agent } = await stack()
   const first = await ctx.plugin(flowgate)
   await first.dispose()
@@ -154,12 +154,12 @@ test('starting a run persists state and steers exactly one composed message', as
   const { ctx, agent, steered, stateDir } = await mount()
   const result = await run(ctx, agent, '/flowgate add a health endpoint')
   assert.equal(result.kind, 'success', result.text)
-  assert.match(result.text, /flowgate: run run-[a-z0-9-]+ started — workflow feature, stage 1\/6 intent/)
+  assert.match(result.text, /flowgate: run run-[a-z0-9-]+ started — workflow feature, stage 1\/7 intent/)
   assert.equal(steered.length, 1)
   const message = steered[0].content[0].text
   assert.equal(message.startsWith('WORKFLOW\n========'), true)
-  assert.match(message, /STAGE 1 of 6: intent/)
-  assert.match(message, /STAGE 6 of 6: review/)
+  assert.match(message, /STAGE 1 of 7: intent/)
+  assert.match(message, /STAGE 7 of 7: review/)
   assert.match(message, /## EVIDENCE/)
   const runId = runIdOf(result.text)
   assert.equal(existsSync(join(stateDir, 'runs', runId, 'state.json')), true)
@@ -174,7 +174,7 @@ test('status, report, and resume read the same persisted state the run recorded'
   assert.equal(status.kind, 'success', status.text)
   assert.match(status.text, new RegExp(`RUN ${runId}`))
   assert.match(status.text, /Status: running/)
-  assert.match(status.text, /Workflow: feature \(6 stages, contract v2\)/)
+  assert.match(status.text, /Workflow: feature \(7 stages, contract v2\)/)
   assert.match(status.text, /1\. intent \[required\] -> Intent :: gate pending/)
   assert.match(status.text, /Last valid checkpoint: none/)
 
@@ -184,10 +184,11 @@ test('status, report, and resume read the same persisted state the run recorded'
   assert.equal(parsed.run_id, runId)
   assert.equal(parsed.status, 'running')
   assert.equal(parsed.workflow.name, 'feature')
-  assert.equal(parsed.stages.length, 6)
+  assert.equal(parsed.stages.length, 7)
   assert.equal(parsed.stages[0].skill, 'intent')
-  assert.equal(parsed.stages[1].skill, 'decide')
+  assert.equal(parsed.stages[1].skill, 'research')
   assert.equal(parsed.stages[1].required, false)
+  assert.equal(parsed.stages[2].skill, 'decide')
   assert.equal(parsed.enforcement.level, 'validated')
   assert.equal(parsed.gates.every(gate => gate.status === 'pending'), true)
   assert.deepEqual(parsed.artifacts, [])

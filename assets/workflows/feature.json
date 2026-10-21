@@ -8,6 +8,7 @@
   },
   "stages": [
     { "skill": "intent", "required": true, "purpose": "Capture what the operator actually wants." },
+    { "skill": "research", "required": false, "purpose": "Gather evidence from outside the repository for the open question." },
     { "skill": "decide", "required": false, "purpose": "Record the chosen approach, the alternatives it beat, and what would reopen it." },
     { "skill": "spec", "required": true, "purpose": "Pin the interfaces, boundaries, and success criteria." },
     { "skill": "slice", "required": true, "purpose": "Break the work into independently provable slices." },
@@ -16,6 +17,7 @@
   ],
   "rules": [
     "Do not begin a stage until the previous stage's artifact is complete and its evidence block is filled.",
+    "Emit a research artifact when the answer depends on evidence this repository cannot supply; omit it when the codebase already answers the question.",
     "Emit a decision when more than one approach is viable; omit the artifact when only one approach survives.",
     "If a stage reveals the intent was wrong, return to the intent stage before continuing."
   ],

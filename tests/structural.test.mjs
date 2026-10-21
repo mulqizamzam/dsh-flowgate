@@ -38,14 +38,35 @@ function parseFrontmatter(raw, file) {
   return data
 }
 
-test('the plugin ships exactly 9 skills, 5 workflows, 10 commands, and 18 gates', () => {
-  assert.equal(shippedSkills(SKILLS_DIR).length, 9)
+test('the plugin ships exactly 10 skills, 5 workflows, 11 commands, and 18 gates', () => {
+  assert.equal(shippedSkills(SKILLS_DIR).length, 10)
   assert.equal(workflows.size, 5)
   const counts = derivedCounts()
-  assert.equal(counts.commands, 10)
-  assert.equal(counts.aliases, 9)
+  assert.equal(counts.commands, 11)
+  assert.equal(counts.aliases, 10)
   assert.equal(counts.gates, 18)
   assert.equal(GATE_ORDER.length, 18)
+})
+
+test('the research capability is wired: a contract, an artifact type, and three workflow stages', () => {
+  const contract = contracts.contracts.research
+  assert.notEqual(contract, undefined, 'the research skill needs a contract entry')
+  assert.deepEqual(contract.produces, ['Research'])
+  assert.deepEqual(contract.requires, ['Intent'])
+  assert.deepEqual(contract.evidence.map(entry => entry.id).sort(), ['claims_graded', 'sources_fetched'])
+  assert.ok(contracts.vocabulary.artifacts.includes('Research'))
+  assert.ok(contracts.vocabulary.categories.includes('research'))
+  const spec = artifactFields.fields.Research
+  assert.deepEqual(spec.required, ['QUESTION', 'SOURCES', 'FINDINGS', 'CONTRADICTIONS', 'GAPS', 'CONFIDENCE', 'IMPACT'])
+  assert.deepEqual(spec.enumerated.CONFIDENCE, ['high', 'medium', 'low'])
+  for (const name of ['feature', 'investigation', 'migration']) {
+    const stage = workflows.get(name).stages.find(entry => entry.skill === 'research')
+    assert.notEqual(stage, undefined, `${name}: the research stage must exist`)
+    assert.equal(stage.required, false, `${name}: the research stage must stay optional`)
+  }
+  for (const name of ['bugfix', 'release']) {
+    assert.equal(workflows.get(name).stages.some(entry => entry.skill === 'research'), false, `${name}: the research stage must not be present`)
+  }
 })
 
 test('every shipped skill file respects the 24000 byte size limit', () => {

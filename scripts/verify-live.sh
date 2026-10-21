@@ -7,9 +7,9 @@ set -u
 
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WEB_URL="${DSH_WEB_URL:-http://127.0.0.1:13080}"
-EXPECTED_SKILLS=9
+EXPECTED_SKILLS=10
 EXPECTED_WORKFLOWS=5
-EXPECTED_COMMANDS=10
+EXPECTED_COMMANDS=11
 
 resolve_profile() {
   local candidates=()

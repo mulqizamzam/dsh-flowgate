@@ -8,11 +8,13 @@
   },
   "stages": [
     { "skill": "intent", "required": true, "purpose": "State the question to be answered in a falsifiable form." },
+    { "skill": "research", "required": false, "purpose": "Gather evidence from outside the repository for the open question." },
     { "skill": "recover", "required": true, "purpose": "Diagnose system behavior from evidence, not trial and error." },
     { "skill": "handoff", "required": true, "purpose": "Record changed, verified, not verified, and next action." }
   ],
   "rules": [
     "Do not begin a stage until the previous stage's artifact is complete and its evidence block is filled.",
+    "Emit a research artifact when the open question needs facts this repository cannot supply; omit it when the codebase already answers the question.",
     "Do not propose a fix during the recover stage; record the root cause and stop.",
     "If the question changes, return to the intent stage before continuing."
   ],
