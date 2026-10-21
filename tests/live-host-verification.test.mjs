@@ -91,7 +91,7 @@ test('the live host verifies command registration and skill resolution', async (
   assert.equal(capabilitySummary(matrix), '8 verified, 2 unsupported, 0 unknown')
   assert.deepEqual(
     ctx.commands.list(agent).map(descriptor => descriptor.name).sort(),
-    ['constrain', 'flowgate', 'handoff', 'intent', 'prove', 'recover', 'review', 'slice', 'spec'],
+    ['constrain', 'decide', 'flowgate', 'handoff', 'intent', 'prove', 'recover', 'review', 'slice', 'spec'],
   )
 })
 
@@ -206,7 +206,7 @@ test('a plugin load against the live host registers and disposes cleanly', async
   const agent = { id: session.id, session, steer: () => {} }
   await ctx.plugin(Object.assign(inner => { createScope(inner, agent) }, { inject: ['commands'] }))
   const fiber = await ctx.plugin(flowgate, { stateDir: tempStateDir('flowgate-dispose-') })
-  assert.equal(ctx.commands.list(agent).length, 9)
+  assert.equal(ctx.commands.list(agent).length, 10)
   await fiber.dispose()
   assert.deepEqual(ctx.commands.list(agent), [])
 })

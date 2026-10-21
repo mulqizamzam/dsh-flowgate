@@ -8,6 +8,7 @@
   },
   "stages": [
     { "skill": "intent", "required": true, "purpose": "Capture what the operator actually wants." },
+    { "skill": "decide", "required": false, "purpose": "Record the chosen migration path, the alternatives it beat, and what would reopen it." },
     { "skill": "spec", "required": true, "purpose": "Pin the interfaces, boundaries, and success criteria." },
     { "skill": "slice", "required": true, "purpose": "Break the work into independently provable slices." },
     { "skill": "prove", "required": true, "purpose": "Write the proof before the code." },
@@ -16,6 +17,7 @@
   ],
   "rules": [
     "Do not begin a stage until the previous stage's artifact is complete and its evidence block is filled.",
+    "Emit a decision when more than one migration path is viable; omit the artifact when only one path survives.",
     "Each slice must be independently rollbackable before the next slice starts.",
     "If a stage reveals the intent was wrong, return to the intent stage before continuing."
   ],

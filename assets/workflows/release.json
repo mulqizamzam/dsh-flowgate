@@ -1,13 +1,15 @@
 {
   "schema_version": 1,
   "name": "release",
-  "description": "Gates a release on constraints, proof, review, and handoff.",
+  "description": "Gates a release on intent, constraints, proof, review, and handoff.",
   "match": {
     "keywords": ["release", "deploy", "ship", "production", "launch"],
     "priority": 80
   },
   "stages": [
+    { "skill": "intent", "required": true, "purpose": "State what is being released and what success looks like." },
     { "skill": "constrain", "required": true, "purpose": "Establish the written quality bar with thresholds." },
+    { "skill": "decide", "required": false, "purpose": "Record the release path chosen, the alternatives it beat, and what would reopen it." },
     { "skill": "prove", "required": true, "purpose": "Write the proof that the release meets the constraints." },
     { "skill": "review", "required": true, "purpose": "Adversarial review against the stated constraints." },
     { "skill": "handoff", "required": true, "purpose": "Leave a takeover-ready record of the release state." }
@@ -15,6 +17,7 @@
   "rules": [
     "Do not begin a stage until the previous stage's artifact is complete and its evidence block is filled.",
     "A constraint without a threshold and a failure action is not a constraint.",
+    "Emit a decision when more than one release path is viable; omit the artifact when only one path survives.",
     "If review finds an unresolved high-severity finding, do not proceed to handoff."
   ],
   "on_optional_missing": "skip",

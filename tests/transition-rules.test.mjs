@@ -3,7 +3,7 @@ import { test } from 'node:test'
 import { FlowgateController } from '../lib/controller.js'
 import { addAttempt, evaluateStage } from '../lib/state.js'
 import { GATE_STATUSES } from '../lib/registry.js'
-import { handoffText, intentText, recordDiagnosis, recordIntent, recordHandoff, startRun } from './helpers.mjs'
+import { handoffText, intentText, decisionText, recordDecision, recordDiagnosis, recordIntent, recordHandoff, startRun } from './helpers.mjs'
 
 function gate(run, skill) {
   return run.gates.find(entry => entry.stage === skill)
@@ -138,6 +138,40 @@ test('a gate cannot pass while required evidence is unresolved', async () => {
   stored.evidence[0].validation = { method: 'observed_command_match', ok: false, errors: [{ path: '#/result', message: 'mismatch' }] }
   const invalid = evaluateStage(stored, 'intent', { contracts, now: '2026-01-01T00:10:00.000Z' })
   assert.deepEqual(invalid.reasons.map(reason => reason.code), ['EVIDENCE_INVALID'])
+})
+
+test('the decide stage passes on a complete artifact with both declared evidence records', async () => {
+  const { controller, run } = await startRun({ request: 'add a rate limiter' })
+  recordIntent(controller, run)
+  const result = recordDecision(controller, run)
+  assert.equal(result.recorded, true)
+  assert.equal(result.stage, 'decide')
+  assert.equal(result.gate, 'passed')
+  const stored = controller.status(run.run_id)
+  const artifact = stored.artifacts.find(entry => entry.artifact_type === 'Decision')
+  assert.equal(artifact.status, 'valid')
+  assert.equal(artifact.producer.stage, 'decide')
+  const evidence = stored.evidence.filter(entry => entry.producer.stage === 'decide')
+  assert.deepEqual(evidence.map(entry => entry.contract_evidence_id).sort(), ['options_recorded', 'rationale_recorded'])
+  assert.equal(evidence.every(entry => entry.status === 'current'), true)
+})
+
+test('the decide stage fails when a required field is missing', async () => {
+  const { controller, run } = await startRun({ request: 'add a rate limiter' })
+  recordIntent(controller, run)
+  const result = controller.recordStageOutput(run.run_id, decisionText({ fields: { REVISED_BY: '' } }))
+  assert.equal(result.gate, 'failed')
+  assert.deepEqual(result.reasons.map(reason => reason.code), ['ARTIFACT_SCHEMA_INVALID'])
+})
+
+test('the decide stage is blocked until the intent it depends on is valid', async () => {
+  const { controller, run, contracts } = await startRun({ request: 'add a rate limiter' })
+  const stored = controller.load(run.run_id)
+  addAttempt(stored, 'decide', { attemptId: 'att-901', now: '2026-01-01T00:00:00.000Z' })
+  const result = evaluateStage(stored, 'decide', { contracts, now: '2026-01-01T00:00:00.000Z' })
+  assert.equal(result.status, 'blocked')
+  assert.deepEqual(result.reasons.map(reason => reason.code), ['STAGE_INPUT_MISSING'])
+  assert.match(result.reasons[0].message, /required input artifact Intent/)
 })
 
 test('an attempt records the gate outcome it produced', async () => {

@@ -38,12 +38,12 @@ function parseFrontmatter(raw, file) {
   return data
 }
 
-test('the plugin ships exactly 8 skills, 5 workflows, 9 commands, and 18 gates', () => {
-  assert.equal(shippedSkills(SKILLS_DIR).length, 8)
+test('the plugin ships exactly 9 skills, 5 workflows, 10 commands, and 18 gates', () => {
+  assert.equal(shippedSkills(SKILLS_DIR).length, 9)
   assert.equal(workflows.size, 5)
   const counts = derivedCounts()
-  assert.equal(counts.commands, 9)
-  assert.equal(counts.aliases, 8)
+  assert.equal(counts.commands, 10)
+  assert.equal(counts.aliases, 9)
   assert.equal(counts.gates, 18)
   assert.equal(GATE_ORDER.length, 18)
 })

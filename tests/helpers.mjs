@@ -116,6 +116,32 @@ export function intentText({ fields = {}, evidence = {}, records = [] } = {}) {
   ].join('\n')
 }
 
+export function decisionText({ fields = {}, records = [], evidence = {} } = {}) {
+  const values = {
+    CONTEXT: 'the request must be rate limited before it reaches the handler',
+    OPTIONS: 'in-memory token bucket',
+    CHOSEN: 'in-memory token bucket',
+    RATIONALE: 'it needs no new dependency and the p95 overhead stays under one millisecond',
+    REJECTED: 'redis-backed counter — it adds an operational dependency for a single-node limit',
+    CONSEQUENCES: 'the limit resets whenever the process restarts',
+    REVISED_BY: 'the service runs on more than one node',
+    ...fields,
+  }
+  return [
+    'DECISION',
+    `CONTEXT: ${values.CONTEXT}`,
+    `OPTIONS: ${values.OPTIONS}`,
+    `CHOSEN: ${values.CHOSEN}`,
+    `RATIONALE: ${values.RATIONALE}`,
+    `REJECTED: ${values.REJECTED}`,
+    `CONSEQUENCES: ${values.CONSEQUENCES}`,
+    `REVISED_BY: ${values.REVISED_BY}`,
+    ...evidenceRecordLines(records),
+    '',
+    evidenceBlock(evidence),
+  ].join('\n')
+}
+
 export function specText({ fields = {}, records = [], evidence = {} } = {}) {
   const values = {
     INTERFACES: 'POST /login returns 200 with a session cookie',
@@ -241,6 +267,15 @@ export const LOGIN_COMMAND = 'node --test tests/login.test.mjs'
 
 export function recordIntent(controller, run, overrides = {}) {
   return controller.recordStageOutput(run.run_id, intentText(overrides))
+}
+
+export function recordDecision(controller, run, { records } = {}) {
+  return controller.recordStageOutput(run.run_id, decisionText({
+    records: records ?? [
+      { id: 'options_recorded', type: 'declared_evidence', result: 'declared' },
+      { id: 'rationale_recorded', type: 'declared_evidence', result: 'declared' },
+    ],
+  }))
 }
 
 export function recordDiagnosis(controller, run, { reproResult = 'fail', withoutObservation = false, records } = {}) {

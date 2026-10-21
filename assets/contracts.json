@@ -4,6 +4,7 @@
   "vocabulary": {
     "artifacts": [
       "Intent",
+      "Decision",
       "Spec",
       "SlicePlan",
       "Proof",
@@ -13,7 +14,7 @@
       "Handoff",
       "user-request"
     ],
-    "categories": ["frame", "specify", "plan", "prove", "review", "guard", "recover", "close"],
+    "categories": ["frame", "decide", "specify", "plan", "prove", "review", "guard", "recover", "close"],
     "risk_levels": ["low", "medium", "high"]
   },
   "evidence_types": [
@@ -59,6 +60,49 @@
         { "id": "intent_evidence_block", "type": "evidence_block" },
         { "id": "intent_evidence_valid", "type": "evidence_validation" },
         { "id": "intent_evidence_current", "type": "evidence_current" }
+      ],
+      "dependencies": { "unknown_impact_policy": "needs_revalidation" },
+      "completion": {
+        "required_checks": "all",
+        "missing_prerequisite": "blocked",
+        "unmet_criterion": "failed",
+        "checker_error": "error"
+      },
+      "recovery": { "checkpoint_eligible": true, "require_current_evidence": true },
+      "side_effects": { "class": "read_only", "retry_policy": "safe_idempotent" }
+    },
+    "decide": {
+      "contract_version": 2,
+      "produces": ["Decision"],
+      "consumes": ["user-request", "Intent"],
+      "requires": ["Intent"],
+      "requires_any": [],
+      "categories": ["decide"],
+      "risk_level": "low",
+      "evidence": [
+        {
+          "id": "options_recorded",
+          "type": "declared_evidence",
+          "supports": ["CONTEXT", "OPTIONS", "CHOSEN"],
+          "bind_to_inputs": ["Intent"],
+          "accepted_provenance": ["agent_statement", "operator_input"],
+          "freshness_policy": "invalidate_on_dependency_change"
+        },
+        {
+          "id": "rationale_recorded",
+          "type": "declared_evidence",
+          "supports": ["RATIONALE", "REJECTED", "CONSEQUENCES", "REVISED_BY"],
+          "bind_to_inputs": ["Intent"],
+          "accepted_provenance": ["agent_statement", "operator_input", "observed_command", "observed_tool"],
+          "freshness_policy": "invalidate_on_dependency_change"
+        }
+      ],
+      "checks": [
+        { "id": "decision_fields", "type": "artifact_fields" },
+        { "id": "decision_schema", "type": "artifact_schema" },
+        { "id": "decision_evidence_block", "type": "evidence_block" },
+        { "id": "decision_evidence_valid", "type": "evidence_validation" },
+        { "id": "decision_evidence_current", "type": "evidence_current" }
       ],
       "dependencies": { "unknown_impact_policy": "needs_revalidation" },
       "completion": {
@@ -299,7 +343,7 @@
     "handoff": {
       "contract_version": 2,
       "produces": ["Handoff"],
-      "consumes": ["user-request", "Intent", "Spec", "SlicePlan", "Proof", "Review", "Constraints", "Diagnosis"],
+      "consumes": ["user-request", "Intent", "Spec", "SlicePlan", "Proof", "Review", "Constraints", "Diagnosis", "Decision"],
       "requires": ["user-request"],
       "requires_any": ["Diagnosis", "Review", "Proof"],
       "categories": ["close"],

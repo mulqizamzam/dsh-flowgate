@@ -6,7 +6,7 @@ claims are what this plugin exists to replace.
 
 ## When the block is required
 
-The block is required on every stage output, on all eight stages, with no
+The block is required on every stage output, on all nine stages, with no
 exceptions and no stages exempt. It is the last section of the artifact. A stage
 whose artifact arrives without the block has not completed that stage, and the
 composed workflow message says so in the header, in every stage block, and in the

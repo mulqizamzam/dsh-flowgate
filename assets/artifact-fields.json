@@ -4,6 +4,9 @@
     "Intent": {
       "required": ["GOAL", "NON_GOALS", "SUCCESS_CRITERIA", "UNKNOWNS"]
     },
+    "Decision": {
+      "required": ["CONTEXT", "OPTIONS", "CHOSEN", "RATIONALE", "REJECTED", "CONSEQUENCES", "REVISED_BY"]
+    },
     "Spec": {
       "required": ["INTERFACES", "BOUNDARIES", "TEST_STRATEGY", "ACCEPTANCE"]
     },

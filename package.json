@@ -1,7 +1,7 @@
 {
   "name": "dsh-flowgate",
   "version": "2.0.0",
-  "description": "Evidence-driven, stateful engineering workflows for DeepSeek Harness: 8 skills, 5 workflows, 9 commands, versioned contracts, and dependency-aware invalidation.",
+  "description": "Evidence-driven, stateful engineering workflows for DeepSeek Harness: 9 skills, 5 workflows, 10 commands, versioned contracts, and dependency-aware invalidation.",
   "keywords": [
     "deepseek-harness",
     "dsh-plugin",

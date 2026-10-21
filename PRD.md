@@ -43,7 +43,9 @@ The product's governing rule is:
 
 ### v2 product envelope
 
-- Retain the existing **8 skills**, **5 workflows**, and **9 slash commands**.
+- Retain the existing **9 skills**, **5 workflows**, and **10 slash commands**.
+  ADR 0002 added the `decide` skill, the `Decision` artifact, and the `/decide`
+  alias to the envelope this section originally fixed at 8 / 5 / 9.
 - Introduce formal Stage Contracts and a dependency graph.
 - Introduce persistent, explicit run state and deterministic transition rules.
 - Validate stage outputs, required evidence, and gate criteria before a stage may be recorded as passed.
@@ -99,7 +101,7 @@ When requirements conflict, prioritize in this order:
 
 ### 4.1 Goals for v2
 
-- Retain the eight existing artifact-producing skills and five workflow types.
+- Retain the nine existing artifact-producing skills and five workflow types.
 - Formalize a machine-readable contract for every stage.
 - Model workflow runs and stage attempts as persistent state.
 - Keep artifact, evidence, gate, and review status independent.
@@ -157,6 +159,7 @@ An operator asks Flowgate to fix a login regression. Flowgate selects `bugfix`, 
 | Skill | Artifact | Category | Risk | Purpose |
 |---|---|---|---|---|
 | `intent` | `Intent` | `frame` | `low` | State what the operator wants in falsifiable terms. |
+| `decide` | `Decision` | `decide` | `low` | Record the chosen approach, the alternatives it beat, and what would reopen it. Added by ADR 0002. |
 | `spec` | `Spec` | `specify` | `low` | Define interfaces, boundaries, and a test strategy. |
 | `slice` | `SlicePlan` | `plan` | `low` | Break the work into independently provable slices. |
 | `prove` | `Proof` | `prove` | `medium` | Define proof before the change and record reproducible before/after evidence. |
@@ -169,11 +172,18 @@ An operator asks Flowgate to fix a login regression. Flowgate selects `bugfix`, 
 
 | Workflow | Keywords | Priority | Ordered stages (`*` means required) |
 |---|---|---:|---|
-| `feature` | `add`, `implement`, `build`, `create`, `feature` | 60 | `intent* → spec* → slice* → prove* → review` |
+| `feature` | `add`, `implement`, `build`, `create`, `feature` | 60 | `intent* → decide → spec* → slice* → prove* → review` |
 | `bugfix` | `fix`, `broken`, `regression`, `crash`, `bug` | 75 | `recover* → prove* → review*` |
 | `investigation` | `investigate`, `why`, `diagnose`, `failing`, `understand` | 50 | `intent* → recover* → handoff*` |
-| `migration` | `migrate`, `upgrade`, `deprecate`, `port`, `refactor` | 70 | `intent* → spec* → slice* → prove* → review → handoff*` |
-| `release` | `release`, `deploy`, `ship`, `production`, `launch` | 80 | `constrain* → prove* → review* → handoff*` |
+| `migration` | `migrate`, `upgrade`, `deprecate`, `port`, `refactor` | 70 | `intent* → decide → spec* → slice* → prove* → review → handoff*` |
+| `release` | `release`, `deploy`, `ship`, `production`, `launch` | 80 | `intent* → constrain* → decide → prove* → review* → handoff*` |
+
+The optional `decide` stage was added by ADR 0002. It is present in `feature`,
+`migration`, and `release`, because those are the workflows where the operator
+chooses between approaches rather than reacting to an event. `release` also
+gained a required `intent` stage in the same change, because the `decide`
+contract requires a valid `Intent` artifact and the release workflow produced
+none.
 
 Workflow selection MUST remain deterministic:
 
@@ -187,15 +197,18 @@ For `bugfix`, one `prove` stage produces one `Proof` artifact containing `FAILIN
 
 ### 6.3 Preserved commands
 
-Keep exactly these nine command registrations unless the host's command API makes an equivalent registration impossible and an ADR approves a replacement:
+Keep exactly these ten command registrations unless the host's command API makes an equivalent registration impossible and an ADR approves a replacement:
 
-`/intent`, `/spec`, `/slice`, `/prove`, `/review`, `/constrain`, `/recover`, `/handoff`, `/flowgate`.
+`/intent`, `/decide`, `/spec`, `/slice`, `/prove`, `/review`, `/constrain`, `/recover`, `/handoff`, `/flowgate`.
 
-The eight aliases resolve one skill and pass the sanitized request without mutating the skill body. `/flowgate` is the orchestration entry point. v2 should extend `/flowgate` flags instead of proliferating top-level commands.
+The nine aliases resolve one skill and pass the sanitized request without mutating the skill body. `/flowgate` is the orchestration entry point. v2 should extend `/flowgate` flags instead of proliferating top-level commands.
+
+`/decide` was added by ADR 0002, which supersedes the earlier nine-registration rule for that one alias. The rule against new orchestration surfaces is unchanged: `/decide` loads one stage skill and orchestrates nothing.
 
 ### 6.4 Preserved artifact fields
 
 - **Intent:** `GOAL`, `NON_GOALS`, `SUCCESS_CRITERIA`, `UNKNOWNS`.
+- **Decision:** `CONTEXT`, `OPTIONS`, `CHOSEN`, `RATIONALE`, `REJECTED`, `CONSEQUENCES`, `REVISED_BY`.
 - **Spec:** `INTERFACES`, `BOUNDARIES`, `TEST_STRATEGY`, `ACCEPTANCE`.
 - **SlicePlan:** ordered slices with `SCOPE`, `PROOF`, `ROLLBACK`.
 - **Proof:** `WHAT_IS_PROVEN`, `HOW`, `FAILING_BEFORE`, `PASSING_AFTER`, `EDGE_CASES`.
@@ -364,6 +377,12 @@ Retain v1 input hardening:
 - validate skill/workflow metadata at startup and in CI.
 
 Sanitization MUST be narrowly scoped to the untrusted user request. Skill content may not be silently rewritten to work around invalid metadata.
+
+Each stage block in the composed message MUST name the evidence ids the stage's
+contract requires, with their types, so the agent can declare them without
+reading the contract file. The ids MUST come from the resolved contract and not
+from a skill body, so a body cannot drift from what the gate accepts. Operator
+input evidence is synthesized by the controller and is not listed.
 
 ## 8. State model
 
@@ -550,7 +569,7 @@ The initial implementation is single-user and local. Multi-process locking is re
 
 ### 11.1 Logical components
 
-1. **Command adapter** — registers the eight aliases and `/flowgate`; maps real host calls to Flowgate interfaces.
+1. **Command adapter** — registers the nine aliases and `/flowgate`; maps real host calls to Flowgate interfaces.
 2. **Capability adapter** — provides verified host capabilities for command registration, skill resolution/rendering, steering, lifecycle/interruption signals, and any supported execution controls.
 3. **Workflow resolver** — deterministic routing and stage/contract resolution.
 4. **Contract validator** — validates skill contracts, stage contracts, artifact schemas, and workflow definitions.
@@ -587,7 +606,7 @@ Produce `docs/host-capability-matrix.md` with each capability labeled `verified`
 
 ## 12. Command behavior
 
-Keep the nine command registrations. Exact flag parsing must be deterministic and documented in README.
+Keep the ten command registrations. Exact flag parsing must be deterministic and documented in README.
 
 ### 12.1 Skill aliases
 
@@ -670,7 +689,7 @@ The target v2 suite contains **18 unique gates**, in this fixed order:
 | 14 | `routing.test.mjs` | Exact-token scores, zero-match fallback, priority/lexical tie-breaks, Unicode, repeated words, punctuation, and large input are deterministic. |
 | 15 | `composition-security.test.mjs` | Sanitization, request byte limit, 40 KiB message limit, wrapper injection tests, and byte-identical skill bodies pass. |
 | 16 | `persistence.test.mjs` | Atomic update/corruption/version migration and unsupported-version refusal behave correctly. |
-| 17 | `report-and-command-e2e.test.mjs` | Nine commands register, dry-run is side-effect-free, status/report/resume behaviors work, and reports match stored state. |
+| 17 | `report-and-command-e2e.test.mjs` | Ten commands register, dry-run is side-effect-free, status/report/resume behaviors work, and reports match stored state. |
 | 18 | `live-host-verification.test.mjs` | Supported live host path verifies actual behavior; enforcement level is proven or explicitly downgraded/documented. |
 
 ### 14.1 Mandatory adversarial scenarios
@@ -748,7 +767,7 @@ Milestones are sequential. Do not begin controller implementation before the hos
 Flowgate v2 is not release-ready until all of the following hold:
 
 1. All 18 unique test gates pass in the required order.
-2. The 8 skills, 5 workflows, and 9 commands remain present and pass structural checks.
+2. The 9 skills, 5 workflows, and 10 commands remain present and pass structural checks.
 3. `/flowgate --dry-run` displays deterministic routing, stage order, inputs/outputs, dependencies, checks, and size information without steering, executing, or mutating run state.
 4. All stages are represented by versioned contracts with input, output, evidence, check, dependency, completion, and recovery declarations.
 5. Artifact, evidence, gate, review, and run statuses are stored/derived independently.
@@ -833,9 +852,9 @@ Flowgate v2 is not release-ready until all of the following hold:
 
 ## 19. v1-to-v2 migration policy
 
-- Keep the eight skills' user-visible purpose and their artifact minimum fields unless a schema change is justified and documented.
+- Keep the nine skills' user-visible purpose and their artifact minimum fields unless a schema change is justified and documented.
 - Preserve all five workflow names, keyword lists, priorities, and stage order unless a separate ADR establishes a backward-incompatible correction.
-- Preserve the nine command registrations; extend `/flowgate` options compatibly.
+- Preserve the ten command registrations; extend `/flowgate` options compatibly.
 - Keep the existing human-readable `## EVIDENCE` block while adding structured evidence records.
 - Existing v1 runs/artifacts without version bindings MUST NOT be assumed current under v2. They may be imported as legacy artifacts with `needs_revalidation` status.
 - v1 prompt-level gates must not be retroactively described as runtime-enforced.
@@ -846,7 +865,7 @@ Flowgate v2 is not release-ready until all of the following hold:
 The README and references must include:
 
 - product summary, installation, verified host/runtime versions;
-- all nine commands and their supported options;
+- all ten commands and their supported options;
 - workflow selection rules;
 - artifact and evidence status definitions;
 - run status and error code reference;

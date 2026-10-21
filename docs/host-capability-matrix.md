@@ -15,7 +15,7 @@ Two summaries are recorded because they describe two different situations:
 
 | Capability | Live status | Evidence | Product guarantee |
 | --- | --- | --- | --- |
-| `commands.register` | verified | `@deepseek-ai/dsh-commands` declares `register`; the runtime `ctx.commands.register` is exercised by `tests/report-and-command-e2e.test.mjs` and `tests/live-host-verification.test.mjs`. Without a runtime registry the status drops to `unsupported`. | Nine commands register and are torn down through the host effect. |
+| `commands.register` | verified | `@deepseek-ai/dsh-commands` declares `register`; the runtime `ctx.commands.register` is exercised by `tests/report-and-command-e2e.test.mjs` and `tests/live-host-verification.test.mjs`. Without a runtime registry the status drops to `unsupported`. | Ten commands register and are torn down through the host effect. |
 | `commands.execute` | verified | `ctx.commands.execute(agent, line, [], signal)` drives a registered handler; used by every command test. | Command behavior (dry run, status, report, resume, alias load) is exercised at the real registry boundary. |
 | `skills.resolve` | verified | `@deepseek-ai/dsh-skill` declares `SkillRegistry.get`; the filesystem provider is mounted in `tests/skill-load.test.mjs` and `tests/live-host-verification.test.mjs`. Without a runtime registry the status drops to `unsupported`. | A stage resolves to a real skill body; a missing required stage fails composition before the agent is steered. |
 | `skills.render` | verified | Host `renderSkillContent` output is embedded byte-identically; asserted by `tests/composition-security.test.mjs`. | Composed messages carry the host-rendered body unchanged. |
@@ -56,7 +56,7 @@ The supported live path is a real cordis `Context` with:
 2. An agent object that records `steer` calls.
 3. `flowgate` mounted with an explicit `stateDir`.
 
-On that path the plugin registers nine commands, resolves real skill bodies,
+On that path the plugin registers ten commands, resolves real skill bodies,
 records real `session/event` tool results as observations, and accepts an
 assistant message containing an artifact as stage output. All of it is asserted in
 `tests/live-host-verification.test.mjs`, which is the gate that proves the

@@ -34,6 +34,7 @@ A host restart activates the commands. State is written on the first run; see
 | Command | Action |
 | --- | --- |
 | `/intent` | Load the intent skill. |
+| `/decide` | Load the decide skill. |
 | `/spec` | Load the spec skill. |
 | `/slice` | Load the slice skill. |
 | `/prove` | Load the prove skill. |
@@ -61,11 +62,15 @@ the request.
 
 | Workflow | Priority | Keywords | Stages (`*` = required) |
 | --- | ---: | --- | --- |
-| feature | 60 | add, implement, build, create, feature | intent* → spec* → slice* → prove* → review |
+| feature | 60 | add, implement, build, create, feature | intent* → decide → spec* → slice* → prove* → review |
 | bugfix | 75 | fix, broken, regression, crash, bug | recover* → prove* → review* |
 | investigation | 50 | investigate, why, diagnose, failing, understand | intent* → recover* → handoff* |
-| migration | 70 | migrate, upgrade, deprecate, port, refactor | intent* → spec* → slice* → prove* → review → handoff* |
-| release | 80 | release, deploy, ship, production, launch | constrain* → prove* → review* → handoff* |
+| migration | 70 | migrate, upgrade, deprecate, port, refactor | intent* → decide → spec* → slice* → prove* → review → handoff* |
+| release | 80 | release, deploy, ship, production, launch | intent* → constrain* → decide → prove* → review* → handoff* |
+
+The `decide` stage is optional: it is recorded when more than one approach is
+viable and skipped when only one survives. See
+[ADR 0002](docs/adr/0002-decide-stage-and-tenth-command.md).
 
 Routing is pure and deterministic: the request is tokenized on Unicode letter and
 number boundaries, each workflow counts the distinct keywords it contains, the
@@ -91,6 +96,7 @@ A contract is data (`assets/contracts.json`, validated against
 | Stage | Artifact | Required evidence | Provenance accepted | Side effects |
 | --- | --- | --- | --- | --- |
 | intent | Intent | `request_recorded` (operator input, synthesized) | operator_input | read_only / safe_idempotent |
+| decide | Decision | `options_recorded` (declared), `rationale_recorded` (declared, or measured) | agent_statement, operator_input; agent_statement, operator_input, observed_command, observed_tool | read_only / safe_idempotent |
 | spec | Spec | `acceptance_recorded` (artifact inspection) | observed_tool, agent_statement | read_only / safe_idempotent |
 | slice | SlicePlan | `slices_recorded` (declared) | agent_statement | read_only / safe_idempotent |
 | prove | Proof | `failing_before_observed`, `passing_after_observed` (test execution) | observed_command, observed_tool | local_write / safe_idempotent |
@@ -110,6 +116,12 @@ Evidence may also be declared:
 ```text
 EVIDENCE_RECORD: {"id": "repro_observed", "type": "command_execution", "command": "node --test tests/login.test.mjs", "result": "fail"}
 ```
+
+Every stage block in a composed message names the evidence ids that stage
+requires, with their types (`Required evidence: options_recorded
+(declared_evidence), rationale_recorded (declared_evidence)`), so the agent
+declares them from the contract instead of guessing. Operator input evidence is
+synthesized by the controller and is not listed.
 
 The controller matches a declaration against observations captured from real host
 `tool/result` events. A match upgrades provenance to `observed_command`; a declared
@@ -264,7 +276,7 @@ missing the dependency or bundle entry, 14 catalog count mismatch.
   checks reject missing fields and unobserved claims, but they cannot judge whether
   a sentence is true. `prove` and `recover` mitigate this by accepting only
   observed test/command evidence.
-- The eight artifact schemas are opinionated and there is no per-project override.
+- The nine artifact schemas are opinionated and there is no per-project override.
 - Invocation is one composed message per run; the multi-turn callback path relies
   on the agent emitting stage output that the session observer can record.
 - Artifact and evidence content is capped (64 KiB per artifact record, 2 KiB per
@@ -278,12 +290,12 @@ MIT. See [LICENSE](LICENSE).
 
 | Count | Value |
 | --- | --- |
-| Skills | 8 |
+| Skills | 9 |
 | Workflows | 5 |
-| Contracts | 8 |
-| Alias commands | 8 |
-| Commands | 9 |
-| Artifact types | 8 |
+| Contracts | 9 |
+| Alias commands | 9 |
+| Commands | 10 |
+| Artifact types | 9 |
 | Test gates | 18 |
 
 <!-- COUNTS:END -->

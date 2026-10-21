@@ -11,8 +11,8 @@ const SOURCE = 'workflows.test.mjs'
 const EXPECTED = {
   feature: {
     keywords: ['add', 'implement', 'build', 'create', 'feature'],
-    order: ['intent', 'spec', 'slice', 'prove', 'review'],
-    optional: ['review'],
+    order: ['intent', 'decide', 'spec', 'slice', 'prove', 'review'],
+    optional: ['decide', 'review'],
   },
   bugfix: {
     keywords: ['fix', 'broken', 'regression', 'crash', 'bug'],
@@ -26,13 +26,13 @@ const EXPECTED = {
   },
   migration: {
     keywords: ['migrate', 'upgrade', 'deprecate', 'port', 'refactor'],
-    order: ['intent', 'spec', 'slice', 'prove', 'review', 'handoff'],
-    optional: ['review'],
+    order: ['intent', 'decide', 'spec', 'slice', 'prove', 'review', 'handoff'],
+    optional: ['decide', 'review'],
   },
   release: {
     keywords: ['release', 'deploy', 'ship', 'production', 'launch'],
-    order: ['constrain', 'prove', 'review', 'handoff'],
-    optional: [],
+    order: ['intent', 'constrain', 'decide', 'prove', 'review', 'handoff'],
+    optional: ['decide'],
   },
 }
 

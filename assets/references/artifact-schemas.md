@@ -15,6 +15,19 @@ SUCCESS_CRITERIA: <one checkable condition per line, or none>
 UNKNOWNS: <one open question per line, or none>
 ```
 
+## Decision
+
+```text
+DECISION
+CONTEXT: <the constraint or situation that forces a choice>
+OPTIONS: <one candidate option per line>
+CHOSEN: <the option that was selected>
+RATIONALE: <the property the chosen option wins on, and what it costs>
+REJECTED: <one alternative and the reason it lost, per line>
+CONSEQUENCES: <one thing the choice now commits to, per line>
+REVISED_BY: <the condition that would reopen this decision, or none>
+```
+
 ## Spec
 
 ```text

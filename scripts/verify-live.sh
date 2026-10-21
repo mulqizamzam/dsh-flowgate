@@ -7,8 +7,9 @@ set -u
 
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WEB_URL="${DSH_WEB_URL:-http://127.0.0.1:13080}"
-EXPECTED_SKILLS=8
+EXPECTED_SKILLS=9
 EXPECTED_WORKFLOWS=5
+EXPECTED_COMMANDS=10
 
 resolve_profile() {
   local candidates=()
@@ -77,11 +78,11 @@ grep -q 'id: flowgate-skills' "$PLUGIN_DIR/cordis.patch.yml" \
 node --input-type=module -e "
 import { derivedCounts } from '$LINK/lib/counts.js'
 const counts = derivedCounts()
-if (counts.skills !== $EXPECTED_SKILLS || counts.workflows !== $EXPECTED_WORKFLOWS || counts.commands !== 9) {
+if (counts.skills !== $EXPECTED_SKILLS || counts.workflows !== $EXPECTED_WORKFLOWS || counts.commands !== $EXPECTED_COMMANDS) {
   console.error(JSON.stringify(counts))
   process.exit(1)
 }
-" || fail "catalog count mismatch (expected $EXPECTED_SKILLS skills, $EXPECTED_WORKFLOWS workflows, 9 commands)" 14
+" || fail "catalog count mismatch (expected $EXPECTED_SKILLS skills, $EXPECTED_WORKFLOWS workflows, $EXPECTED_COMMANDS commands)" 14
 
-echo "OK: host reachable at $WEB_URL; plugin linked, loaded, and wired; catalog counts match ($EXPECTED_SKILLS skills, $EXPECTED_WORKFLOWS workflows, 9 commands)"
+echo "OK: host reachable at $WEB_URL; plugin linked, loaded, and wired; catalog counts match ($EXPECTED_SKILLS skills, $EXPECTED_WORKFLOWS workflows, $EXPECTED_COMMANDS commands)"
 exit 0
