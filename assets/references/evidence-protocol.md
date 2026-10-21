@@ -16,6 +16,19 @@ The block is also terminal: a stage artifact must end with the evidence block,
 because a heading after it means the artifact continues into material the gate
 does not read.
 
+## Several artifacts in one message
+
+An assistant message may carry more than one stage artifact. Each artifact then
+ends with its own evidence block, and the artifact ends where the next artifact
+marker starts. The controller records the artifacts in stage order and stops at
+the first stage that does not pass, so a later artifact whose prerequisite did
+not pass is refused rather than recorded early.
+
+A message that carries several artifacts may declare the evidence of each of
+them: `EVIDENCE_RECORD` lines are matched to the contract of the stage that is
+being recorded, and a declaration that belongs to another stage of the same
+workflow is not an error.
+
 ## When a field may be empty
 
 Never. An empty field is written as `none`. A field holding `none` is a statement

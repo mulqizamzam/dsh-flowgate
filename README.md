@@ -131,6 +131,14 @@ requires, with their types (`Required evidence: options_recorded
 declares them from the contract instead of guessing. Operator input evidence is
 synthesized by the controller and is not listed.
 
+One assistant message may carry several stage artifacts. They are recorded in
+stage order, the walk stops at the first stage that does not pass, and an
+artifact whose prerequisite did not pass is refused as premature. An
+`EVIDENCE_RECORD` line is matched to the contract of the stage being recorded,
+so a declaration that belongs to another stage of the same workflow is not an
+error. See
+[ADR 0004](docs/adr/0004-multi-artifact-stage-recording.md).
+
 The controller matches a declaration against observations captured from real host
 `tool/result` events. A match upgrades provenance to `observed_command`; a declared
 `result` that contradicts the observed result makes the evidence `invalid`; no
@@ -285,13 +293,12 @@ missing the dependency or bundle entry, 14 catalog count mismatch.
   a sentence is true. `prove` and `recover` mitigate this by accepting only
   observed test/command evidence.
 - The ten artifact schemas are opinionated and there is no per-project override.
-- Invocation is one composed message per run, and the session observer records at
-  most one stage artifact per assistant message. Flowgate never steers the agent
-  again to ask for the next stage, so a run whose agent emits every artifact in
-  one final message stops after the first stage: the later artifacts stay
-  unrecorded and their gates stay `pending`. A live run on 2026-10-21 behaved
-  exactly that way (`intent=passed`, `decide=pending`). Multi-stage runs do
-  complete when the agent emits each artifact in its own message.
+- Invocation is one composed message per run. One assistant message may carry
+  several stage artifacts: they are recorded in stage order, and the walk stops
+  at the first stage that does not pass. Flowgate never steers the agent again to
+  ask for the next stage, so an agent that emits only the first artifact and then
+  stops leaves the later gates `pending`. That happened in a live run on
+  2026-10-21, before this recording model existed.
 - Artifact and evidence content is capped (64 KiB per artifact record, 2 KiB per
   evidence excerpt) so state stays bounded.
 

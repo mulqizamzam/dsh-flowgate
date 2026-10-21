@@ -225,6 +225,7 @@ limitations; changing the recording model is a separate change.
   `pending` gates. The live validation above is the evidence for this item; the
   change touches `lib/controller.js` and the observer, and deserves its own
   change with a test that fails on the current recording model.
+  **Done in ADR 0004** (`docs/adr/0004-multi-artifact-stage-recording.md`).
 - If `release` ever needs a second decision point (for example the rollback
   path chosen after a failed canary), the `decide` stage can be repeated only
   after the contract model allows one stage to produce two artifacts.

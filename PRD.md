@@ -488,6 +488,10 @@ A stage may be recorded as `passed` only if:
 - Input change → reevaluate all graph-reachable dependent records under their invalidation policies.
 - Resume → cannot skip a stage whose required outputs/evidence no longer satisfy current contracts.
 - Completion → cannot be reported while required evidence/gates are unresolved.
+- One assistant message may carry several stage artifacts. They are recorded in
+  stage order; the walk stops at the first stage that does not pass, and an
+  artifact whose required prerequisite did not pass is refused as premature
+  while the artifacts already recorded stand.
 - All transition decisions must record their reason and the contract/rule that produced the decision.
 
 ## 10. Data contracts and storage

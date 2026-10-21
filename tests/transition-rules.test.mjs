@@ -3,7 +3,17 @@ import { test } from 'node:test'
 import { FlowgateController } from '../lib/controller.js'
 import { addAttempt, evaluateStage } from '../lib/state.js'
 import { GATE_STATUSES } from '../lib/registry.js'
-import { handoffText, intentText, decisionText, researchText, recordDecision, recordDiagnosis, recordIntent, recordHandoff, recordResearch, startRun } from './helpers.mjs'
+import { handoffText, intentText, decisionText, proofText, researchText, recordDecision, recordDiagnosis, recordIntent, recordHandoff, recordResearch, startRun } from './helpers.mjs'
+
+const DECISION_RECORDS = [
+  { id: 'options_recorded', type: 'declared_evidence', result: 'declared' },
+  { id: 'rationale_recorded', type: 'declared_evidence', result: 'declared' },
+]
+
+const PROOF_RECORDS = [
+  { id: 'failing_before_observed', type: 'test_execution', command: 'node --test tests/login.test.mjs', result: 'fail' },
+  { id: 'passing_after_observed', type: 'test_execution', command: 'node --test tests/login.test.mjs', result: 'pass' },
+]
 
 function gate(run, skill) {
   return run.gates.find(entry => entry.stage === skill)
@@ -234,6 +244,47 @@ test('a changed intent marks the research evidence stale', async () => {
   assert.equal(research.length, 2)
   assert.ok(research.every(entry => entry.status !== 'current'), 'research evidence must not stay current after the intent changed')
   assert.equal(stored.gates.find(entry => entry.stage === 'research').status, 'blocked')
+})
+
+test('one assistant message records every stage artifact it carries', async () => {
+  const { controller, run } = await startRun({ request: 'add a rate limiter' })
+  const message = [intentText(), decisionText({ records: DECISION_RECORDS })].join('\n\n')
+  const result = controller.recordStageOutput(run.run_id, message)
+  assert.equal(result.recorded, true)
+  assert.deepEqual(result.stages.map(stage => stage.stage), ['intent', 'decide'])
+  assert.deepEqual(result.stages.map(stage => stage.gate), ['passed', 'passed'])
+  const stored = controller.status(run.run_id)
+  assert.deepEqual(stored.artifacts.map(entry => entry.artifact_type), ['Intent', 'Decision'])
+  assert.equal(gate(stored, 'intent').status, 'passed')
+  assert.equal(gate(stored, 'decide').status, 'passed')
+  const decideEvidence = stored.evidence.filter(entry => entry.producer.stage === 'decide')
+  assert.deepEqual(decideEvidence.map(entry => entry.contract_evidence_id).sort(), ['options_recorded', 'rationale_recorded'])
+  assert.equal(decideEvidence.every(entry => entry.status === 'current'), true)
+})
+
+test('a later artifact in the same message is refused while its prerequisite is missing', async () => {
+  const { controller, run } = await startRun({ request: 'add a rate limiter' })
+  const message = [intentText(), proofText({ records: PROOF_RECORDS })].join('\n\n')
+  const result = controller.recordStageOutput(run.run_id, message)
+  assert.equal(result.recorded, true)
+  assert.deepEqual(result.stages.map(stage => stage.stage), ['intent'])
+  assert.equal(result.rejected.code, 'STAGE_INPUT_MISSING')
+  assert.match(result.rejected.message, /required stage "spec" has not passed/)
+  const stored = controller.status(run.run_id)
+  assert.deepEqual(stored.artifacts.map(entry => entry.artifact_type), ['Intent'])
+  assert.equal(gate(stored, 'prove').status, 'pending')
+})
+
+test('a failed stage stops the walk over the artifacts in the same message', async () => {
+  const { controller, run } = await startRun({ request: 'add a rate limiter' })
+  const message = [intentText({ fields: { SUCCESS_CRITERIA: '' } }), decisionText({ records: DECISION_RECORDS })].join('\n\n')
+  const result = controller.recordStageOutput(run.run_id, message)
+  assert.equal(result.recorded, true)
+  assert.deepEqual(result.stages.map(stage => stage.stage), ['intent'])
+  assert.equal(result.stages[0].gate, 'failed')
+  const stored = controller.status(run.run_id)
+  assert.deepEqual(stored.artifacts.map(entry => entry.artifact_type), ['Intent'])
+  assert.equal(gate(stored, 'decide').status, 'pending')
 })
 
 test('an attempt records the gate outcome it produced', async () => {
