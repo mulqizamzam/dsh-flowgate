@@ -75,6 +75,61 @@ recording artifacts in the order they appear in the text (it would break the
 dependency model, where a later stage's artifact depends on an earlier one
 being valid).
 
+## Live confirmation
+
+The host was restarted on 2026-10-22 and serves the new code, and a live
+run against it recorded two stage artifacts from one assistant message.
+
+Run `run-mvjk2h8t19` (workflow `investigation`, four stages: `intent`,
+`research` optional, `recover`, `handoff`) recorded four artifacts:
+
+| Artifact | Stage | `created_at` | Status |
+| --- | --- | --- | --- |
+| `art-mvjl18e33c` | intent | 2026-10-22T13:34:09.331Z | invalid |
+| `art-mvjl1nvs3g` | intent | 2026-10-22T13:34:29.416Z | invalid |
+| `art-mvjlbnf84a` | intent | 2026-10-22T13:42:15.376Z | valid |
+| `art-mvjlbnfc4f` | recover | 2026-10-22T13:42:15.376Z | invalid |
+
+The gates ended at `intent=passed`, `research=pending`
+(`STAGE_OPTIONAL_SKIPPED`), `recover=failed` (`ARTIFACT_SCHEMA_INVALID`) and
+`handoff=pending`, which was never checked. The three gates that were
+checked carry one identical `checked_at`, 2026-10-22T13:42:15.376Z, and the
+run status is `failed`.
+
+The third and fourth artifacts carry one identical `created_at`,
+2026-10-22T13:42:15.376Z, and they came from one assistant message: the
+session transcript shows a single message carrying the standalone marker
+lines `INTENT`, `DIAGNOSIS` and `HANDOFF` and three `## EVIDENCE` headings.
+The controller recorded the `Intent` artifact and then the `Diagnosis`
+artifact from that message. The `Handoff` artifact in the same message was
+not recorded: the walk stopped at the first stage that does not pass, and
+the `recover` gate failed. The run advanced past stage 1 in that one
+message.
+
+What this confirms: the multi-artifact recording model runs live. One
+assistant message recorded two artifacts, and the run moved past stage 1 in
+that message.
+
+What this does not confirm: a multi-artifact message whose stages all pass.
+The `Diagnosis` artifact was recorded but its gate failed, so the message
+never produced a fully passing second stage. The refusal path was not
+exercised either: the `Handoff` artifact was not recorded because the walk
+stopped at the failed stage, not because it was refused as premature.
+
+Two agent-side defects showed up, and they are what the gates are there to
+catch. The agent repeated the `FACTS` line in its evidence block, so the
+first two `Intent` artifacts were recorded invalid and the run failed; it
+recovered after a corrective prompt. It then wrote a sentence into the
+enumerated `CONFIDENCE` field, which the `Diagnosis` contract rejected.
+
+One caveat on the observation: the artifact-producing turns ran on
+`nine-router` with `oc/minimax-m3.1-flash-free(thinking)`, not on the
+profile's default route. The earlier turns died at the provider — the
+default `kgw/minimax/minimax-m3.1-flash:free(thinking)` route returned a
+503 after that model's free launch period ended, and the `deepseek-official`
+routes returned 404 — and the verification session's model was switched to
+complete the run.
+
 ## Consequences
 
 - Positive: an agent that emits every artifact at once advances the run by
@@ -100,5 +155,12 @@ being valid).
 
 ## Follow-up
 
-- Watch a live run once the host picks this change up, and record in ADR 0002's
-  live-validation section whether a run now advances past stage 1.
+- Done: the live run was observed. Run `run-mvjk2h8t19` recorded two
+  artifacts from one assistant message, both stamped
+  2026-10-22T13:42:15.376Z, and the run advanced past stage 1 in that
+  message. ADR 0002's live-validation section records the observation.
+- Open: a multi-artifact message whose every stage passes has not been
+  observed. The run above recorded the `Diagnosis` artifact from the same
+  message, but its gate failed, so the walk stopped there and the `Handoff`
+  artifact in that message was never recorded. Watch a run whose stages all
+  pass and record the result in ADR 0002's live-validation section.

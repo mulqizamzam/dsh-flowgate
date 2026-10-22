@@ -299,7 +299,10 @@ missing the dependency or bundle entry, 14 catalog count mismatch.
   ask for the next stage, so a run waits for the agent between stages: in a live
   run on 2026-10-21 the `Decision` artifact arrived nine and a half minutes
   after the `Intent` one, because the agent kept working in between, and the
-  run showed `decide=pending` until it did.
+  run showed `decide=pending` until it did. A live run on 2026-10-22 recorded
+  two artifacts from one assistant message — the `Intent` artifact, valid, and
+  the `Diagnosis` artifact, invalid — both stamped with one identical
+  `created_at`, and the run advanced past stage 1 in that message.
 - Artifact and evidence content is capped (64 KiB per artifact record, 2 KiB per
   evidence excerpt) so state stays bounded.
 

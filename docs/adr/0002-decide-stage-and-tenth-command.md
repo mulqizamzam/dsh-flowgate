@@ -199,6 +199,58 @@ run by exactly one stage, and the rest of that message is ignored. ADR 0004
 records the change that removes that limit, with a test that fails on the
 previous model.
 
+## Live validation (2026-10-22)
+
+The host was restarted on 2026-10-22 and serves the code from ADR 0004, and
+a second live run was observed against it.
+
+- The run id was `run-mvjk2h8t19`, workflow `investigation`, four stages
+  (`intent`, `research` optional, `recover`, `handoff`). Its state is kept at
+  `<stateDir>/runs/run-mvjk2h8t19/state.json`.
+- It recorded four artifacts:
+
+  | Artifact | Stage | `created_at` | Status |
+  | --- | --- | --- | --- |
+  | `art-mvjl18e33c` | intent | 2026-10-22T13:34:09.331Z | invalid |
+  | `art-mvjl1nvs3g` | intent | 2026-10-22T13:34:29.416Z | invalid |
+  | `art-mvjlbnf84a` | intent | 2026-10-22T13:42:15.376Z | valid |
+  | `art-mvjlbnfc4f` | recover | 2026-10-22T13:42:15.376Z | invalid |
+
+- The gates ended at `intent=passed`, `research=pending`
+  (`STAGE_OPTIONAL_SKIPPED`), `recover=failed` (`ARTIFACT_SCHEMA_INVALID`)
+  and `handoff=pending`, which was never checked. The three gates that were
+  checked carry one identical `checked_at`, 2026-10-22T13:42:15.376Z, and
+  the run status is `failed`.
+- The third and fourth artifacts carry one identical `created_at`,
+  2026-10-22T13:42:15.376Z, and came from one assistant message. The
+  controller recorded the `Intent` artifact and then the `Diagnosis`
+  artifact from that message, and stopped there: the `Handoff` artifact in
+  the same message was not recorded, because the walk stops at the first
+  stage that does not pass and the `recover` gate failed.
+
+Two agent-side defects showed up, and both were caught by the gates. The
+agent repeated the `FACTS` line in its evidence block, so the first two
+`Intent` artifacts were recorded invalid and the run failed; it recovered
+after a corrective prompt. It then wrote a sentence into the enumerated
+`CONFIDENCE` field, which the `Diagnosis` contract rejected with
+`ARTIFACT_SCHEMA_INVALID`.
+
+This is the observation ADR 0004's follow-up asked for: the multi-artifact
+recording model runs live, and the run advanced past stage 1 in that one
+message. It does not change the finding above, which records the recording
+model as it was on 2026-10-21; ADR 0004 records the change. One thing stays
+open: a multi-artifact message whose every stage passes has not been
+observed, because the `recover` gate failed and the walk stopped before the
+`Handoff` artifact in the same message could be recorded.
+
+One caveat on the observation: the artifact-producing turns ran on
+`nine-router` with `oc/minimax-m3.1-flash-free(thinking)`, not on the
+profile's default route. The earlier turns died at the provider — the
+default `kgw/minimax/minimax-m3.1-flash:free(thinking)` route returned a
+503 after that model's free launch period ended, and the `deepseek-official`
+routes returned 404 — and the verification session's model was switched to
+complete the run.
+
 ## Consequences
 
 - Positive: the reasoning behind a design becomes a gated artifact with
